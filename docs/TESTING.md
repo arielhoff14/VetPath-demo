@@ -1,3 +1,13 @@
+# Owner filters and fee verification
+
+Latest local production verification: **21 unit tests and 13 browser scenarios passed** against an isolated PostgreSQL database. After the final fee-conflict and control-layout changes, the focused fee/workload/filter integration tests and mobile check passed again (3/3). TypeScript and production build pass.
+
+New coverage combines proximity, fee caps and fresh activity; checks lowest-price/activity ordering, missing/zero prices and emergency bypass; edits a clinic fee in an independent staff session and observes owner filtering; records arrival/completion and stale activity; refreshes both sessions; and verifies protected fee imports plus explicit source-conflict resolution directly in PostgreSQL. The existing-database migration retained the same patient count. Public read-only checks repeat price sorting, city/ZIP filters and inquiry-control ordering.
+
+See [owner filter behavior and fee assumptions](OWNER-FILTERS.md).
+
+---
+
 # Current connected-workflow verification
 
 November 15, 2026: production Next.js build against isolated PostgreSQL, using Chromium and separate browser contexts.

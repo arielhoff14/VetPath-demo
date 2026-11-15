@@ -502,6 +502,50 @@ function ClinicSettings({
         </section>
       )}
       <section className="panel">
+        <h2>Exam fee</h2>
+        <p className="muted">
+          Owners see this amount on the clinic card and in price filters.
+        </p>
+        <form
+          key={`${clinic.id}:${clinic.version}`}
+          className="form-grid"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            setBusy(true);
+            setError("");
+            try {
+              const value = new FormData(e.currentTarget).get("exam_fee");
+              await api("providers/" + clinic.id, "PATCH", {
+                version: clinic.version,
+                exam_fee: value === "" ? null : Number(value),
+              });
+              refresh();
+              feedback(
+                "Exam fee saved. Owner cards and price filters update automatically.",
+              );
+            } catch (e) {
+              setError((e as Error).message);
+            } finally {
+              setBusy(false);
+            }
+          }}
+        >
+          <Field label="Exam fee ($)">
+            <input
+              name="exam_fee"
+              type="number"
+              min="0"
+              max="10000"
+              step="0.01"
+              defaultValue={clinic.exam_fee ?? ""}
+            />
+          </Field>
+          <button className="primary" disabled={busy}>
+            Save exam fee
+          </button>
+        </form>
+        {error && <Notice error>{error}</Notice>}
+        <div className="divider" />
         <h2>Species & capabilities</h2>
         <form
           onSubmit={async (e) => {

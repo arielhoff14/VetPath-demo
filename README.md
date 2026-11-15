@@ -94,3 +94,5 @@ See [deployment instructions](docs/DEPLOYMENT.md) for Docker and Node hosting, e
 The default owner view lists all 31 sourced provider records and the three labeled practice clinics. Enter a city, ZIP, ZIP+4, or use browser location to narrow by distance. San Jose searches include the nearby Campbell and Mountain View hospitals with their correct city labels. The bundled location index supports 569 ZIP codes across the nine Bay Area counties plus Sacramento. Google Sheets sync imports Interview Tracker, Pricing Comparison and Website Audit together. See [source details](docs/SOURCES.md) and [regression checks](docs/TESTING.md).
 
 Species and San Jose demonstration data were re-audited; see [species evidence and limitations](docs/SPECIES-AUDIT.md).
+
+Distance, exam-price and activity filters are described in the [owner filter guide](docs/OWNER-FILTERS.md), including editable fees and demo assumptions.

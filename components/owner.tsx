@@ -1,4 +1,5 @@
 "use client";
+import { formatFee } from "@/lib/fees";
 import { SpeciesFields } from "./species-fields";
 import { speciesMatch, speciesLabel } from "@/lib/species";
 import { useState, useMemo } from "react";
@@ -389,7 +390,12 @@ export default function Owner({ providers }: { providers: Provider[] }) {
               <span>
                 {Number(filters.species !== "Any pet") +
                   Number(filters.service !== "Any care") +
-                  Number(filters.available)}
+                  Number(filters.available) +
+                  Number(filters.maxFee !== undefined) +
+                  Number(
+                    !!filters.activityLevel && filters.activityLevel !== "any",
+                  ) +
+                  Number(filters.radius !== 25)}
               </span>
             </button>
           </div>
@@ -412,8 +418,7 @@ export default function Owner({ providers }: { providers: Provider[] }) {
               }
               setSubtype={(value) => change("subtype", value)}
             />
-            <label>
-              <Stethoscope size={14} />
+            <Field label="Care type">
               <select
                 aria-label="Care type"
                 value={filters.service}
@@ -435,49 +440,105 @@ export default function Owner({ providers }: { providers: Provider[] }) {
                   <option key={x}>{x}</option>
                 ))}
               </select>
-            </label>
+            </Field>
+            <Field label="Search radius">
+              <select
+                value={filters.radius}
+                disabled={!filters.location && filters.lat === undefined}
+                onChange={(e) => change("radius", Number(e.target.value))}
+              >
+                {[1, 3, 5, 10, 25, 50, 100, 200].map((n) => (
+                  <option key={n} value={n}>
+                    Within {n} miles
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Maximum exam fee">
+              <select
+                value={filters.maxFee ?? ""}
+                onChange={(e) =>
+                  change(
+                    "maxFee",
+                    e.target.value === "" ? undefined : Number(e.target.value),
+                  )
+                }
+              >
+                <option value="">Any price</option>
+                {[100, 150, 200, 250, 300, 400].map((n) => (
+                  <option key={n} value={n}>
+                    Up to ${n}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Activity level">
+              <select
+                value={filters.activityLevel || "any"}
+                onChange={(e) => change("activityLevel", e.target.value)}
+              >
+                <option value="any">Any activity</option>
+                <option value="green">Green · Lower activity</option>
+                <option value="yellow">Yellow · Busy</option>
+                <option value="red">Red · High activity</option>
+                <option value="unknown">Unconfirmed</option>
+              </select>
+            </Field>
+            <Field label="Sort results">
+              <select
+                value={filters.sortBy || "recommended"}
+                onChange={(e) => change("sortBy", e.target.value)}
+              >
+                <option value="recommended">Recommended</option>
+                <option
+                  value="distance"
+                  disabled={!filters.location && filters.lat === undefined}
+                >
+                  Closest first
+                </option>
+                <option value="price">Lowest exam fee</option>
+                <option value="activity">Lowest activity</option>
+              </select>
+            </Field>
             <button
               className={filters.available ? "selected" : ""}
+              aria-pressed={filters.available}
               onClick={() => change("available", !filters.available)}
             >
               <span className="status-dot" />
               {filters.available ? "Open inquiries only" : "Open for inquiries"}
             </button>
           </div>
+          <div className="filter-guidance">
+            <span>
+              {!filters.location && filters.lat === undefined
+                ? "Enter a city or ZIP to filter by distance. "
+                : "Distances are approximate. "}
+              Activity is not a promised wait time. Exam fee excludes treatment.
+            </span>
+            <button
+              className="text-button"
+              onClick={() => {
+                setEmergency(false);
+                setFilters({
+                  species: "Any pet",
+                  service: "Any care",
+                  location: "",
+                  radius: 25,
+                  available: false,
+                });
+              }}
+            >
+              Reset filters
+            </button>
+          </div>
           {showFilters && (
             <div className="expanded-filters">
-              <Field label="Search radius">
-                <select
-                  value={filters.radius}
-                  onChange={(e) => change("radius", Number(e.target.value))}
-                  aria-label="Search radius"
-                >
-                  {[5, 10, 25, 50, 100, 200].map((x) => (
-                    <option value={x} key={x}>
-                      {x} miles
-                    </option>
-                  ))}
-                </select>
-              </Field>
-              <span>
-                Distances are approximate straight-line estimates, using ZIP
-                centers when needed. Intake status expires after 60 minutes.
-              </span>
-              <button
-                className="text-button"
-                onClick={() => {
-                  setEmergency(false);
-                  setFilters({
-                    species: "Any pet",
-                    service: "Any care",
-                    location: "",
-                    radius: 25,
-                    available: false,
-                  });
-                }}
-              >
-                Reset filters
-              </button>
+              <p>
+                Price limits include listed fees only. Activity filters use
+                fresh clinic updates; older or missing updates are unconfirmed.
+                Demo fee assumptions are labeled on each card.
+              </p>
             </div>
           )}
           {error && <Notice error>{error}</Notice>}
@@ -487,9 +548,9 @@ export default function Owner({ providers }: { providers: Provider[] }) {
               <div>
                 <strong>Seek veterinary attention now.</strong>
                 <p>
-                  Emergency hospitals are sorted by distance. Availability and
-                  radius filters are bypassed. Do not delay care to compare
-                  prices or wait for a response.
+                  Emergency hospitals are sorted by distance. Price, activity,
+                  availability and radius filters are bypassed. Do not delay
+                  care to compare prices or wait for a response.
                 </p>
                 <button
                   onClick={() => {
@@ -644,8 +705,10 @@ export default function Owner({ providers }: { providers: Provider[] }) {
                     <dd>{p.services.join(", ")}</dd>
                     <dt>Hours</dt>
                     <dd>{p.hours}</dd>
-                    <dt>Cost information</dt>
-                    <dd>{p.cost_note}</dd>
+                    <dt>Exam fee</dt>
+                    <dd>
+                      <ExamFee p={p} />
+                    </dd>
                     <dt>Source checked</dt>
                     <dd>{sourceDate(p.source_checked)}</dd>
                   </dl>
@@ -704,8 +767,9 @@ export default function Owner({ providers }: { providers: Provider[] }) {
               </small>
             </div>
             <div>
-              <h3>Cost & expectations</h3>
-              <p>{selected.cost_note}</p>
+              <h3>Exam fee</h3>
+              <ExamFee p={selected} />
+              {selected.fee_note && <p className="tiny">{selected.fee_note}</p>}
               <small>
                 An exam fee is not a total treatment estimate. Ask the clinic
                 for an individualized estimate.
@@ -858,6 +922,10 @@ function ProviderCard({
           {selected ? <Check size={15} /> : <Plus size={15} />}
         </button>
       </div>
+      <div className="card-fee">
+        <span>Exam fee</span>
+        <ExamFee p={p} />
+      </div>
       {p.reasons && <p className="match-facts">{p.reasons.join(" · ")}</p>}
       {p.activity ? (
         <div className={`owner-activity ${p.activity.tone}`}>
@@ -889,6 +957,7 @@ function ProviderCard({
                   : availability}
             </strong>
             {p.simulated && <span className="simulated-label">Simulated</span>}
+            <span className="tiny">Activity unconfirmed</span>
           </div>
           <span>
             <Clock3 size={12} />
@@ -1282,5 +1351,19 @@ export function Conversation({
       </form>
       {error && <Notice error>{error}</Notice>}
     </div>
+  );
+}
+
+function ExamFee({ p }: { p: Provider }) {
+  return (
+    <span className="exam-fee">
+      <strong>{formatFee(p.exam_fee)}</strong>
+      {(p.fictional || p.fee_basis === "demo") && (
+        <small>{p.fictional ? "Demo fee" : "Demo estimate"}</small>
+      )}
+      {p.fee_basis === "spreadsheet" && !p.fictional && (
+        <small>Reported fee</small>
+      )}
+    </span>
   );
 }

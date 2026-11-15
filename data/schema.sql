@@ -74,3 +74,7 @@ FROM clinic_operations o;
 -- Preserve the full source species statement, including conditional care and exclusions.
 ALTER TABLE providers ADD COLUMN IF NOT EXISTS species_evidence text NOT NULL DEFAULT '';
 ALTER TABLE providers ADD COLUMN IF NOT EXISTS species_list_complete boolean NOT NULL DEFAULT true;
+
+ALTER TABLE providers ADD COLUMN IF NOT EXISTS fee_basis text NOT NULL DEFAULT 'unknown';
+ALTER TABLE providers ADD COLUMN IF NOT EXISTS fee_checked timestamptz;
+ALTER TABLE providers ADD COLUMN IF NOT EXISTS fee_note text NOT NULL DEFAULT '';

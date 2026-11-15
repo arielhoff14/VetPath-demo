@@ -2606,3 +2606,81 @@ small {
   width: auto;
   margin-top: 4px;
 }
+
+.quick-filters {
+  flex-wrap: wrap;
+  align-items: end;
+}
+.quick-filters > .field {
+  min-width: 125px;
+  max-width: 185px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+}
+.quick-filters > .field > span {
+  font-size: 11px;
+  font-weight: 650;
+  color: var(--navy);
+}
+.quick-filters > .field select {
+  padding: 3px 0;
+  background: white;
+  border: 0;
+  width: 100%;
+  max-width: 100%;
+  font-size: 12px;
+}
+.filter-guidance {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--muted);
+  margin: 8px 0 20px;
+}
+.card-fee {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 22px;
+  background: #f6f8f7;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+}
+.exam-fee {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.exam-fee strong {
+  font-size: 23px;
+  color: var(--navy);
+  font-variant-numeric: tabular-nums;
+}
+.exam-fee small {
+  font-size: 11px;
+  color: var(--muted);
+}
+@media (max-width: 600px) {
+  .quick-filters > .field {
+    flex: 1 1 140px;
+    max-width: 100%;
+    min-width: 0;
+  }
+  .quick-filters > button {
+    width: 100%;
+  }
+  .filter-guidance {
+    align-items: start;
+  }
+  .card-fee {
+    padding: 12px 16px;
+  }
+}

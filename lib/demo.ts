@@ -8,6 +8,7 @@ export const demoClinics = [
     lng: -121.903,
     species: ["Dog", "Cat", "Exotics"],
     subtypes: ["Rabbit", "Bird"],
+    examFee: 110,
     rooms: 4,
     doctors: 2,
     support: 4,
@@ -21,6 +22,7 @@ export const demoClinics = [
     lng: -121.886,
     species: ["Dog", "Cat", "Exotics"],
     subtypes: ["Rabbit", "Bird", "Reptile", "Small mammal"],
+    examFee: 165,
     rooms: 3,
     doctors: 3,
     support: 3,
@@ -44,6 +46,7 @@ export const demoClinics = [
       "Pig",
       "Poultry",
     ],
+    examFee: 225,
     rooms: 6,
     doctors: 2,
     support: 4,
@@ -63,8 +66,8 @@ export async function seedFictionalClinics(c: PoolClient, reset = false) {
     );
     if (reset) {
       await c.query(
-        "UPDATE providers SET name=$2,species=$3,species_subtypes=$4,city=$5,lat=$6,lng=$7,services=ARRAY['Urgent care','General practice'],partner=true,version=version+1,updated_at=now() WHERE id=$1 AND fictional=true",
-        [p.id, p.name, p.species, p.subtypes, p.city, p.lat, p.lng],
+        "UPDATE providers SET name=$2,species=$3,species_subtypes=$4,city=$5,lat=$6,lng=$7,exam_fee=$8,fee_basis='demo',fee_note='',services=ARRAY['Urgent care','General practice'],partner=true,version=version+1,updated_at=now() WHERE id=$1 AND fictional=true",
+        [p.id, p.name, p.species, p.subtypes, p.city, p.lat, p.lng, p.examFee],
       );
       await c.query(
         `UPDATE intakes SET archived_at=now(),updated_at=now(),version=version+1 WHERE provider_id=$1 AND archived_at IS NULL`,

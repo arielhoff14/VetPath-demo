@@ -589,7 +589,7 @@ function EditProvider({
             type="number"
             min="0"
             step="0.01"
-            defaultValue={p.exam_fee || ""}
+            defaultValue={p.exam_fee ?? ""}
           />
         </Field>
         <div className="span-2">

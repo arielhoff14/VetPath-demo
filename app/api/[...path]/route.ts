@@ -149,7 +149,7 @@ async function handle(
     if (area === "providers" && method === "GET") {
       const providers = (
         await query(
-          `SELECT id,name,city,category,phone,address,postal_code,coordinate_source,address_checked,website,lat,lng,species,species_subtypes,species_evidence,species_list_complete,services,hours,scope,cost_note,exam_fee,source_url,source_checked,source_kind,source_notes,partner,fictional,availability,availability_at,updated_at,version,simulated,field_overrides FROM providers ORDER BY name`,
+          `SELECT id,name,city,category,phone,address,postal_code,coordinate_source,address_checked,website,lat,lng,species,species_subtypes,species_evidence,species_list_complete,services,hours,scope,cost_note,exam_fee,fee_basis,fee_checked,fee_note,source_url,source_checked,source_kind,source_notes,partner,fictional,availability,availability_at,updated_at,version,simulated,field_overrides FROM providers ORDER BY name`,
         )
       ).rows;
       const operations = (await query("SELECT * FROM clinic_activity_inputs"))
@@ -220,6 +220,12 @@ async function handle(
         throw new Error("Forbidden");
       const { version, ...changes } = body;
       const updates: Record<string, unknown> = { ...changes };
+      if (changes.exam_fee !== undefined)
+        Object.assign(updates, {
+          fee_basis: changes.exam_fee === null ? "unknown" : "staff",
+          fee_checked: new Date().toISOString(),
+          fee_note: "",
+        });
       if (changes.species)
         Object.assign(updates, providerSpecies(changes.species), {
           species_list_complete: true,
@@ -244,6 +250,9 @@ async function handle(
             "lng",
             "coordinate_source",
             "address_checked",
+            "fee_basis",
+            "fee_checked",
+            "fee_note",
           ].includes(f),
       );
       const c = await pool.connect();
@@ -742,6 +751,10 @@ async function handle(
                 "hours",
                 "scope",
                 "cost_note",
+                "exam_fee",
+                "fee_basis",
+                "fee_checked",
+                "fee_note",
                 "source_url",
                 "website",
                 "source_checked",
@@ -759,6 +772,11 @@ async function handle(
               [conflict.incoming_value, conflict.field, conflict.provider_id],
             );
           }
+          if (b.apply && conflict.field === "exam_fee")
+            await c.query(
+              "UPDATE providers SET fee_basis='spreadsheet',fee_checked=NULL,fee_note='',field_overrides=array_remove(array_remove(array_remove(field_overrides,'fee_basis'),'fee_checked'),'fee_note') WHERE id=$1",
+              [conflict.provider_id],
+            );
           if (b.apply && conflict.field === "address") {
             const geo = addressLocation(String(conflict.incoming_value));
             await c.query(

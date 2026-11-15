@@ -1,3 +1,4 @@
+import { feeAmount } from "./fees";
 import { speciesMatch, speciesLabel } from "./species";
 import { locate, locationInText } from "./locations";
 export { locate, places } from "./locations";
@@ -33,6 +34,9 @@ export type Provider = {
   scope: string;
   cost_note: string;
   exam_fee: number | null;
+  fee_basis?: string;
+  fee_checked?: string | null;
+  fee_note?: string;
   source_url: string;
   source_checked: string;
   source_kind: string;
@@ -54,6 +58,9 @@ export type Filters = {
   location: string;
   radius: number;
   available: boolean;
+  maxFee?: number;
+  activityLevel?: string;
+  sortBy?: string;
   lat?: number;
   lng?: number;
 };
@@ -139,6 +146,9 @@ export function interpret(text: string) {
   const location = locationInText(text);
   return { emergency, species, subtype, service, location };
 }
+export function activityLevel(p: Provider) {
+  return p.activity?.fresh ? p.activity.tone : "unknown";
+}
 export function matchProviders(
   providers: Provider[],
   f: Filters,
@@ -178,6 +188,19 @@ export function matchProviders(
       )
         return false;
       if (speciesMatch(p, f.species, f.subtype) === "mismatch") return false;
+      if (
+        !emergency &&
+        f.maxFee !== undefined &&
+        (feeAmount(p) === null || feeAmount(p)! > f.maxFee)
+      )
+        return false;
+      if (
+        !emergency &&
+        f.activityLevel &&
+        f.activityLevel !== "any" &&
+        activityLevel(p) !== f.activityLevel
+      )
+        return false;
       if (coords && p.distance === undefined) return false;
       if (!emergency && p.distance !== undefined && p.distance > f.radius)
         return false;
@@ -188,9 +211,21 @@ export function matchProviders(
     .sort((a, b) =>
       emergency
         ? (a.distance ?? 999) - (b.distance ?? 999)
-        : Number(liveAvailability(b) === "Accepting") -
-            Number(liveAvailability(a) === "Accepting") ||
-          (a.distance ?? 999) - (b.distance ?? 999),
+        : f.sortBy === "price"
+          ? (feeAmount(a) ?? Infinity) - (feeAmount(b) ?? Infinity) ||
+            (a.distance ?? Infinity) - (b.distance ?? Infinity)
+          : f.sortBy === "distance"
+            ? (a.distance ?? Infinity) - (b.distance ?? Infinity)
+            : f.sortBy === "activity"
+              ? ["green", "yellow", "red", "unknown"].indexOf(
+                  activityLevel(a),
+                ) -
+                  ["green", "yellow", "red", "unknown"].indexOf(
+                    activityLevel(b),
+                  ) || (a.distance ?? Infinity) - (b.distance ?? Infinity)
+              : Number(liveAvailability(b) === "Accepting") -
+                  Number(liveAvailability(a) === "Accepting") ||
+                (a.distance ?? 999) - (b.distance ?? 999),
     );
 }
 export function normalizedPhone(v: string) {

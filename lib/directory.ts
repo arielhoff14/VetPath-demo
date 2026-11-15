@@ -1,3 +1,4 @@
+import { directoryFeeFields } from "./fees";
 import { directorySpeciesFields } from "./species-import";
 import { createHash } from "node:crypto";
 import { parse } from "csv-parse/sync";
@@ -24,6 +25,10 @@ export function parseDirectoryCsv(csv: string, kind: "pricing" | "audit") {
   const headers = [...rows[h]];
   // Google visualization CSV can combine preamble cells into its first header.
   headers[0] = kind === "pricing" ? "Hospital" : "Hospital / source-row label";
+  if (kind === "pricing" && headers[3] === "Animals Treated") {
+    if (!headers[2]) headers[2] = "Fee recorded on";
+    if (!headers[4]) headers[4] = "Exam fee";
+  }
   const result = rows
     .slice(h + 1)
     .filter((r) => r[0]?.trim())
@@ -167,6 +172,12 @@ export async function importDirectory(
       Object.assign(fields, { address, ...addressLocation(address) });
     if (city) fields.city = city + ", CA";
     Object.assign(fields, directorySpeciesFields(row, audit));
+    if (!prev?.field_overrides.includes("exam_fee"))
+      Object.assign(fields, directoryFeeFields(row, audit));
+    else {
+      const fee = directoryFeeFields(row, audit);
+      if ("exam_fee" in fee) fields.exam_fee = fee.exam_fee;
+    }
     if (audit) {
       fields.scope = `${scope}\nSpecies: ${audit["Species evidence / limits"]} Call to confirm current capability.`;
       fields.services = [

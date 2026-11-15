@@ -1,3 +1,4 @@
+import { upgradeFees } from "../lib/fees";
 import { upgradeSpeciesDirectory } from "../lib/species-upgrade";
 import { seedFictionalClinics } from "../lib/demo";
 import { readFileSync } from "node:fs";
@@ -182,6 +183,18 @@ async function main() {
       await upgradeSpeciesDirectory(c);
       await c.query(
         "INSERT INTO data_migrations(id) VALUES('species-directory-v3')",
+      );
+    }
+    if (
+      !(
+        await c.query(
+          "SELECT id FROM data_migrations WHERE id='owner-filters-fees-v4'",
+        )
+      ).rowCount
+    ) {
+      await upgradeFees(c);
+      await c.query(
+        "INSERT INTO data_migrations(id) VALUES('owner-filters-fees-v4')",
       );
     }
     await c.query("COMMIT");
