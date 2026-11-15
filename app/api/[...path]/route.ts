@@ -1,4 +1,4 @@
-import { allSpeciesValues, providerSpecies } from "@/lib/species";
+import { allSpeciesValues, providerSpecies, speciesMatch } from "@/lib/species";
 import {
   activityFor,
   createInquiry,
@@ -15,7 +15,7 @@ import { pool, query } from "@/lib/db";
 import { session, setSession } from "@/lib/auth";
 import { importDirectory, addressLocation } from "@/lib/directory";
 import { importSheet } from "@/lib/importer";
-import { allowedStage } from "@/lib/domain";
+import { allowedStage, inquiryEligible, liveAvailability } from "@/lib/domain";
 import { organizeRequest } from "@/lib/assistant";
 export const dynamic = "force-dynamic";
 const text = z.string().trim().min(1).max(3000);
@@ -159,6 +159,10 @@ async function handle(
           const row = operations.find((o) => o.provider_id === p.id);
           return {
             ...p,
+            inquiry_enabled: inquiryEligible(
+              p,
+              process.env.DEMO_MODE === "true",
+            ),
             activity: row
               ? ownerActivity(
                   calculateActivity({
@@ -438,16 +442,33 @@ async function handle(
           .parse(await req.json());
         if (b.toProvider === intake.provider_id)
           throw new Error("Choose another provider");
+        const receiving = (
+          await query("SELECT * FROM providers WHERE id=$1", [b.toProvider])
+        ).rows[0];
         if (
-          !(
-            await query(
-              "SELECT id FROM providers WHERE id=$1 AND partner=true",
-              [b.toProvider],
-            )
-          ).rowCount
+          !receiving ||
+          !inquiryEligible(receiving, process.env.DEMO_MODE === "true")
         )
-          throw new Error(
-            "Receiving clinic must join the demo partnership first.",
+          throw new WorkflowError(
+            "The receiving clinic has no enabled inquiry workspace.",
+            409,
+          );
+        const activity = await activityFor(pool, b.toProvider);
+        if (
+          (activity && !activity.accepting) ||
+          (!activity && liveAvailability(receiving) === "At capacity")
+        )
+          throw new WorkflowError(
+            "The receiving clinic is not accepting new patients.",
+            409,
+          );
+        if (
+          speciesMatch(receiving, intake.species, intake.species_subtype) ===
+          "mismatch"
+        )
+          throw new WorkflowError(
+            "The receiving clinic does not list care for this species.",
+            422,
           );
         await query(
           "INSERT INTO handoffs(intake_id,from_provider,to_provider,summary) VALUES($1,$2,$3,$4)",
@@ -485,6 +506,46 @@ async function handle(
         if (h.status !== "Requested")
           throw new Error("Handoff already resolved");
         if (b.status === "Accepted") {
+          const receiving = (
+            await c.query("SELECT * FROM providers WHERE id=$1 FOR UPDATE", [
+              h.to_provider,
+            ])
+          ).rows[0];
+          const patient = (
+            await c.query("SELECT * FROM intakes WHERE id=$1 FOR UPDATE", [
+              h.intake_id,
+            ])
+          ).rows[0];
+          if (
+            !receiving ||
+            !inquiryEligible(receiving, process.env.DEMO_MODE === "true")
+          )
+            throw new WorkflowError(
+              "The receiving clinic workspace is unavailable.",
+              409,
+            );
+          const activity = await activityFor(c, h.to_provider);
+          if (
+            (activity && !activity.accepting) ||
+            (!activity && liveAvailability(receiving) === "At capacity")
+          )
+            throw new WorkflowError(
+              "The receiving clinic is not accepting new patients.",
+              409,
+            );
+          if (!patient || patient.archived_at)
+            throw new WorkflowError("This patient record is unavailable.", 409);
+          if (
+            speciesMatch(
+              receiving,
+              patient.species,
+              patient.species_subtype,
+            ) === "mismatch"
+          )
+            throw new WorkflowError(
+              "The receiving clinic does not list care for this species.",
+              422,
+            );
           const updated = await c.query(
             `UPDATE intakes SET provider_id=$1,stage='New',version=version+1,updated_at=now() WHERE id=$2 AND provider_id=$3 RETURNING id`,
             [h.to_provider, h.intake_id, h.from_provider],

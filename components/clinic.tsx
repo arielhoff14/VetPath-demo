@@ -25,7 +25,12 @@ import {
   CalendarClock,
 } from "lucide-react";
 import type { Provider } from "@/lib/domain";
-import { allowedStage, liveAvailability, stages } from "@/lib/domain";
+import {
+  allowedStage,
+  liveAvailability,
+  stages,
+  canInquire,
+} from "@/lib/domain";
 import {
   api,
   useData,
@@ -129,7 +134,7 @@ export default function Clinic({
           <p>
             {clinic?.partner
               ? "Free pilot partner · Simulated partnership"
-              : "Public directory listing · Use Directory to simulate a partnership"}{" "}
+              : "Public listing · Simulated clinic workspace · no actual hospital is notified"}{" "}
             · {clinic?.city}
           </p>
         </div>
@@ -377,7 +382,7 @@ export default function Clinic({
           {!handoffs.length ? (
             <Empty
               title="No handoffs yet"
-              body="Open a patient and coordinate a handoff with another demo partner."
+              body="Open a patient and coordinate a handoff with another clinic workspace."
             />
           ) : (
             handoffs.map((h) => (
@@ -1000,9 +1005,9 @@ function PatientDetail({
             >
               <Field label="Receiving clinic">
                 <select name="toProvider" required>
-                  <option value="">Select a demo partner</option>
+                  <option value="">Select a receiving clinic</option>
                   {providers
-                    .filter((p) => p.partner && p.id !== data.provider_id)
+                    .filter((p) => canInquire(p) && p.id !== data.provider_id)
                     .map((p) => (
                       <option key={p.id} value={p.id}>
                         {p.name}

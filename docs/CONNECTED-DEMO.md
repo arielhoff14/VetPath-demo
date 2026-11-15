@@ -6,7 +6,7 @@ This demo uses real PostgreSQL writes with fictional cases. It is not a live int
 
 1. Open **Demo tools → Reset fictional clinic workflows**, check the confirmation and reset. Public hospital records remain intact. Previous practice-clinic cases are archived, preserving messages and audit history.
 2. In an owner browser profile, enter a new scenario such as “My dog has been limping after a walk for two hours near 95112. I need urgent care.” Review the editable filters and factual match reasons. Choose **Harbor Pet Urgent Care → Send inquiry**. Use a unique fictional pet name and an `example.test` contact.
-3. In a separate browser profile or incognito session, open **Clinic workspace**. Harbor is the default practice clinic. The inquiry appears in **Incoming inquiries**; activity is still 50%.
+3. In a separate browser profile or incognito session, open **Clinic workspace**. Select the hospital that received the inquiry. When switching from owner to clinic in the same browser tab, the selected hospital opens automatically. Harbor is the default if no inquiry was just submitted. The inquiry appears in **Incoming inquiries**; activity is still 50%.
 4. Open **Review → Acknowledge inquiry → Record arrival**. The owner's request updates automatically. Arrival changes activity to 75%. Choose **Urgent** as the fictional staff assessment and **Intensive** workload, then **Record clinical review & start care**. Activity becomes 100%.
 5. Select **Complete visit**. Activity returns to 50%; the owner sees **Visit complete**. Refresh both sessions. The completed case remains under **Completed** and in the owner's care requests.
 6. **Review resources & acceptance** opens editable rooms and on-duty staffing, a separate intake closure, and overrides with mandatory reasons and expiry. The Team coverage tab edits the same staffing records. A confirmation older than 60 minutes shows unconfirmed activity.
@@ -60,3 +60,5 @@ The six chronological chapters are cut from continuous Playwright videos of inde
 - The judging rubric attachment was not available in this workspace. Usability, execution, AI honesty and demonstration quality were reviewed against the user's stated goals; no rubric feature was added.
 
 The [species audit](SPECIES-AUDIT.md) details source corrections, real San Jose providers, and fictional clinic species coverage.
+
+Inquiries and handoffs are now available across every hospital listing in demo mode, independently of partnership status; see [all-hospital inquiry guide](ALL-HOSPITAL-INQUIRIES.md).

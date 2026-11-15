@@ -36,6 +36,8 @@ import {
   Provider,
   Filters,
   matchProviders,
+  canInquire,
+  inquiryBlocked,
   liveAvailability,
   locate,
 } from "@/lib/domain";
@@ -816,10 +818,10 @@ export default function Owner({ providers }: { providers: Provider[] }) {
             </div>
           </div>
           <ContactLinks p={selected} />
-          {selected.partner && (
+          {canInquire(selected) && (
             <button
               className="primary full"
-              disabled={selected.activity?.accepting === false}
+              disabled={inquiryBlocked(selected)}
               onClick={() => {
                 setIntake(selected);
                 setSelected(null);
@@ -979,15 +981,13 @@ function ProviderCard({
         </button>
         <div className="card-actions">
           <ContactLinks p={p} compact />
-          {p.partner && (
+          {canInquire(p) && (
             <button
               className="primary small"
-              disabled={p.activity?.accepting === false}
+              disabled={inquiryBlocked(p)}
               onClick={intake}
             >
-              {p.activity?.accepting === false
-                ? "Not accepting today"
-                : "Send inquiry"}{" "}
+              {inquiryBlocked(p) ? "Not accepting inquiries" : "Send inquiry"}{" "}
               <ArrowRight size={14} />
             </button>
           )}
@@ -1075,11 +1075,13 @@ function IntakeForm({
     <Modal title="Send a care inquiry" close={close}>
       <p className="muted">
         Send an inquiry to <strong>{provider.name}</strong>. This does not
-        confirm an appointment or acceptance.
+        confirm an appointment or acceptance. You can track the clinic’s
+        response in Your care requests.
       </p>
       <div className="callout">
-        Use fictional details. This demo does not contact the actual hospital.
-        In an emergency, call or go to an emergency hospital now.
+        Use fictional details. This inquiry goes to this hospital’s simulated
+        VetPath workspace; no actual hospital is contacted. In an emergency,
+        call or go to an emergency hospital now.
       </div>
       <form
         className="form-grid"
@@ -1099,6 +1101,10 @@ function IntakeForm({
               providerId: provider.id,
             });
             sessionStorage.removeItem(`vetpath-inquiry-${provider.id}`);
+            sessionStorage.setItem(
+              "vetpath-latest-inquiry-clinic",
+              provider.id,
+            );
             done();
           } catch (e) {
             setError((e as Error).message);
@@ -1200,9 +1206,11 @@ function OwnerRequests({ close }: { close: () => void }) {
   return (
     <Modal title="Your care requests" close={close} wide>
       <div className="callout">
-        Your inquiry is saved. Updates appear here automatically. Requests and
-        messages stay inside this demo. A clinic must confirm acceptance by
-        phone before you travel.
+        Your inquiry is saved in the selected clinic’s demo queue. In a separate
+        browser session, open Clinic workspace and select that hospital to
+        review it. Updates appear here automatically. Requests and messages stay
+        inside this demo. A clinic must confirm acceptance by phone before you
+        travel.
       </div>
       {loadError && (
         <Notice error>
@@ -1215,7 +1223,7 @@ function OwnerRequests({ close }: { close: () => void }) {
       ) : data.length === 0 ? (
         <Empty
           title="No care requests yet"
-          body="Find a demo partner clinic and send an intake to start."
+          body="Choose any hospital in the directory and send a fictional inquiry to its demo workspace."
         />
       ) : (
         data.map((x) => (

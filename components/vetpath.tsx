@@ -44,11 +44,23 @@ export default function VetPath() {
   }, []);
   async function navigate(next: string) {
     try {
+      const lastClinic =
+        next === "clinic"
+          ? sessionStorage.getItem("vetpath-latest-inquiry-clinic")
+          : null;
+      const destination =
+        lastClinic && providers.some((p) => p.id === lastClinic)
+          ? lastClinic
+          : clinicId;
       await api("session", "POST", {
         role:
           next === "owner" ? "owner" : next === "clinic" ? "clinic" : "admin",
-        clinicId: next === "clinic" ? clinicId : undefined,
+        clinicId: next === "clinic" ? destination : undefined,
       });
+      if (next === "clinic") {
+        setClinicId(destination);
+        sessionStorage.removeItem("vetpath-latest-inquiry-clinic");
+      }
       setView(next);
       setDemoOpen(false);
       setError("");

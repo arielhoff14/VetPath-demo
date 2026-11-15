@@ -37,8 +37,8 @@ The app runs the schema/seed on startup, waits for database health, and serves o
 ## Try the connected demo
 
 1. Use **Demo tools → Reset fictional clinic workflows** to restore the three practice clinics.
-2. In **Find care**, describe a fictional pet's problem, check the filters and provider facts, and send an inquiry to Harbor (Dog/Cat), Willow (Exotics), or Valley (Farm animals).
-3. Open **Clinic workspace** in a separate browser profile. Acknowledge the inquiry, record arrival, record a clinical assessment and workload, then complete the visit. Owner status and the automatic activity meter update from the same database.
+2. In **Find care**, describe a fictional pet's problem, check the filters and provider facts, and send an inquiry to **any hospital listing**, including nonpartners. Harbor, Willow and Valley remain fictional practice clinics with automatic activity.
+3. Open **Clinic workspace** to jump to the hospital you just inquired with. To show both sides simultaneously, use a separate browser profile and select that same hospital. Acknowledge the inquiry, record arrival, record a clinical assessment and workload, then complete the visit. Owner status and the automatic activity meter update from the same database.
 4. Use **Availability & services** for resources, acceptance, timed overrides and capabilities. **Team coverage** edits the same staffing records used by the calculation.
 5. **Demo tools** also opens **Directory & data** and **Platform insights**. Imports protect staff edits and surface conflicts; insights distinguish contact clicks from staff-confirmed arrivals.
 
@@ -96,3 +96,5 @@ The default owner view lists all 31 sourced provider records and the three label
 Species and San Jose demonstration data were re-audited; see [species evidence and limitations](docs/SPECIES-AUDIT.md).
 
 Distance, exam-price and activity filters are described in the [owner filter guide](docs/OWNER-FILTERS.md), including editable fees and demo assumptions.
+
+Demo inquiry access is available for every directory listing while `DEMO_MODE=true`; it does not change partnership status or notify actual hospitals. See [all-hospital workflow and verification](docs/ALL-HOSPITAL-INQUIRIES.md).

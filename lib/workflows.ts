@@ -3,7 +3,7 @@ import { z } from "zod";
 import { pool } from "./db";
 import type { PoolClient } from "pg";
 import type { Session } from "./auth";
-import { allowedStage } from "./domain";
+import { allowedStage, inquiryEligible, liveAvailability } from "./domain";
 import {
   allSpeciesValues,
   normalizeSpecies,
@@ -108,6 +108,11 @@ export async function createInquiry(raw: unknown, s: Session) {
         b.providerId,
       ])
     ).rows[0];
+    if (!p)
+      throw new WorkflowError(
+        "Clinic not found. Refresh the directory and choose an available listing.",
+        404,
+      );
     const existing = (
       await c.query(
         "SELECT * FROM intakes WHERE owner_session=$1 AND (submission_key=$2 OR (payload_hash=$3 AND archived_at IS NULL AND created_at>now()-interval '10 minutes')) ORDER BY created_at DESC LIMIT 1",
@@ -122,13 +127,16 @@ export async function createInquiry(raw: unknown, s: Session) {
         );
       return { ...existing, duplicate: true };
     }
-    if (!p?.partner)
+    if (!inquiryEligible(p, process.env.DEMO_MODE === "true"))
       throw new WorkflowError(
         "This clinic does not receive online demo inquiries. Contact the clinic directly.",
         409,
       );
     const activity = await activityFor(c, p.id);
-    if (activity && !activity.accepting)
+    if (
+      (activity && !activity.accepting) ||
+      (!activity && liveAvailability(p) === "At capacity")
+    )
       throw new WorkflowError(
         "This clinic is not accepting new patients today. Choose another clinic.",
         409,

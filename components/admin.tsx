@@ -90,7 +90,7 @@ export default function Admin({
       refreshProviders();
       refresh();
       setFeedback(
-        `${p.name}: demo partnership ${p.partner ? "removed" : "enabled"}. Owner intake options update automatically.`,
+        `${p.name}: demo partnership ${p.partner ? "removed" : "enabled"}. Partnership badges update automatically. Demo inquiries remain available for every listing.`,
       );
     } catch (e) {
       setError((e as Error).message);

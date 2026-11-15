@@ -42,6 +42,7 @@ export type Provider = {
   source_kind: string;
   source_notes: string;
   partner: boolean;
+  inquiry_enabled?: boolean;
   availability: string;
   availability_at: string | null;
   updated_at: string;
@@ -82,6 +83,22 @@ export function liveAvailability(p: Provider) {
     Date.now() - new Date(p.availability_at).getTime() < 60 * 60 * 1000
     ? p.availability
     : "Unknown";
+}
+/** Demo access is separate from real clinic partnership and never implies external delivery. */
+export function inquiryEligible(
+  provider: { partner: boolean },
+  demoMode = false,
+) {
+  return demoMode || provider.partner;
+}
+export function canInquire(provider: Provider) {
+  return provider.inquiry_enabled ?? provider.partner;
+}
+export function inquiryBlocked(provider: Provider) {
+  return (
+    provider.activity?.accepting === false ||
+    liveAvailability(provider) === "At capacity"
+  );
 }
 export function interpret(text: string) {
   const s = text.toLowerCase();
