@@ -9,6 +9,7 @@ test("unfiltered directory, San Jose neighbors, regional cities and ZIPs", async
   expect(providers.length).toBeGreaterThanOrEqual(29);
   await expect(page.getByLabel("Search location")).toHaveValue("");
   await expect(page.locator(".provider-card")).toHaveCount(providers.length);
+  await expect(page.locator(".provider-card").filter({ hasText: "Veterinary Emergency Group (San Jose)" })).toContainText("725 Ridder Park Drive, San Jose, CA 95131");
   await expect(
     page.getByRole("heading", { name: "Explore all care locations" }),
   ).toBeVisible();
