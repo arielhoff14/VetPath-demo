@@ -635,7 +635,11 @@ export default function Owner({ providers }: { providers: Provider[] }) {
                       {liveAvailability(p)} {p.simulated ? "(simulated)" : ""}
                     </dd>
                     <dt>Species</dt>
-                    <dd>{p.species.join(", ") || "Not confirmed — call"}</dd>
+                    <dd>
+                      {[...p.species, ...(p.species_subtypes || [])].join(
+                        ", ",
+                      ) || "Not confirmed — call"}
+                    </dd>
                     <dt>Capabilities</dt>
                     <dd>{p.services.join(", ")}</dd>
                     <dt>Hours</dt>
@@ -708,6 +712,15 @@ export default function Owner({ providers }: { providers: Provider[] }) {
               </small>
             </div>
           </div>
+          {selected.species_evidence && (
+            <section
+              className="callout"
+              style={{ whiteSpace: "pre-line", display: "block" }}
+            >
+              <h3>Species evidence & limits</h3>
+              <p>{selected.species_evidence}</p>
+            </section>
+          )}
           <div className="source-box">
             <ShieldCheck size={20} />
             <div>
@@ -817,7 +830,9 @@ function ProviderCard({
           </button>
           <p className="provider-location">
             <MapPin size={13} />
-            {p.address || `${p.city} · Street address unverified`}
+            {p.fictional
+              ? `${p.city} · Fictional practice location`
+              : p.address || `${p.city} · Street address unverified`}
             <span>·</span>
             {p.distance !== undefined
               ? `${p.distance.toFixed(1)} mi`
@@ -829,7 +844,7 @@ function ProviderCard({
             ))}
             <span>
               {p.species.length
-                ? p.species.join(" & ")
+                ? [...p.species, ...(p.species_subtypes || [])].join(" · ")
                 : "Species: call to confirm"}
             </span>
           </div>

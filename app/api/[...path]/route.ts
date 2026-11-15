@@ -149,7 +149,7 @@ async function handle(
     if (area === "providers" && method === "GET") {
       const providers = (
         await query(
-          `SELECT id,name,city,category,phone,address,postal_code,coordinate_source,address_checked,website,lat,lng,species,species_subtypes,services,hours,scope,cost_note,exam_fee,source_url,source_checked,source_kind,source_notes,partner,fictional,availability,availability_at,updated_at,version,simulated,field_overrides FROM providers ORDER BY name`,
+          `SELECT id,name,city,category,phone,address,postal_code,coordinate_source,address_checked,website,lat,lng,species,species_subtypes,species_evidence,species_list_complete,services,hours,scope,cost_note,exam_fee,source_url,source_checked,source_kind,source_notes,partner,fictional,availability,availability_at,updated_at,version,simulated,field_overrides FROM providers ORDER BY name`,
         )
       ).rows;
       const operations = (await query("SELECT * FROM clinic_activity_inputs"))
@@ -222,6 +222,7 @@ async function handle(
       const updates: Record<string, unknown> = { ...changes };
       if (changes.species)
         Object.assign(updates, providerSpecies(changes.species), {
+          species_list_complete: true,
           species_subtypes:
             changes.species_subtypes ||
             providerSpecies(changes.species).species_subtypes,
@@ -748,6 +749,8 @@ async function handle(
                 "source_kind",
                 "species",
                 "species_subtypes",
+                "species_list_complete",
+                "species_evidence",
               ].includes(conflict.field)
             )
               throw new Error("Invalid field");

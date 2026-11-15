@@ -14,6 +14,7 @@ export const exoticTypes = [
 ];
 export const farmTypes = [
   "Horse",
+  "Donkey",
   "Cattle",
   "Goat",
   "Sheep",
@@ -47,7 +48,11 @@ export function providerSpecies(values: string[]) {
   };
 }
 export function speciesMatch(
-  provider: { species: string[]; species_subtypes?: string[] },
+  provider: {
+    species: string[];
+    species_subtypes?: string[];
+    species_list_complete?: boolean;
+  },
   species: string,
   subtype = "",
 ): "confirmed" | "unknown" | "mismatch" {
@@ -59,16 +64,21 @@ export function speciesMatch(
     ...(provider.species_subtypes || []),
   ];
   if (!accepted.species.length) return "unknown";
-  if (!accepted.species.includes(requested.species)) return "mismatch";
+  if (!accepted.species.includes(requested.species))
+    return provider.species_list_complete === false ? "unknown" : "mismatch";
   if (
     ["Exotics", "Farm animals", "Other species"].includes(requested.species)
   ) {
-    if (!requested.subtype || !subtypes.length) return "unknown";
+    if (!requested.subtype)
+      return requested.species === "Other species" ? "unknown" : "confirmed";
+    if (!subtypes.length) return "unknown";
     return subtypes.some(
       (s) => s.toLowerCase() === requested.subtype.toLowerCase(),
     )
       ? "confirmed"
-      : "mismatch";
+      : provider.species_list_complete === false
+        ? "unknown"
+        : "mismatch";
   }
   return "confirmed";
 }

@@ -1,4 +1,4 @@
-import { providerSpecies } from "./species";
+import { directorySpeciesFields } from "./species-import";
 import { createHash } from "node:crypto";
 import { parse } from "csv-parse/sync";
 import type { PoolClient } from "pg";
@@ -76,7 +76,9 @@ export async function applySourceFields(
       continue;
     if (
       prev?.field_overrides.includes(field) &&
-      JSON.stringify(prev[field]) !== JSON.stringify(value)
+      JSON.stringify(
+        Array.isArray(prev[field]) ? [...prev[field]].sort() : prev[field],
+      ) !== JSON.stringify(Array.isArray(value) ? [...value].sort() : value)
     ) {
       await c.query(
         `INSERT INTO conflicts(provider_id,field,current_value,incoming_value) SELECT $1,$2,$3::jsonb,$4::jsonb WHERE NOT EXISTS(SELECT 1 FROM conflicts WHERE provider_id=$1 AND field=$2 AND status IN ('pending','kept') AND incoming_value=$4::jsonb AND current_value=$3::jsonb)`,
@@ -115,7 +117,7 @@ export async function importDirectory(
       ? null
       : row["Hospital street address"] || null;
     const city = address?.match(/,\s*([^,]+),\s*CA\s*\d{5}/)?.[1]?.trim();
-    const audit = audits.find(
+    let audit = audits.find(
       (a) => canonical(a["Hospital / source-row label"]) === key,
     );
     const existing = await c.query(
@@ -123,6 +125,14 @@ export async function importDirectory(
       [key, phone.length === 10 ? phone : "", urlKey(url), name],
     );
     const prev = existing.rows[0];
+    if (!audit && prev)
+      audit = (
+        await c.query(
+          "SELECT audit_raw FROM directory_sources WHERE source_key=$1 AND provider_id=$2",
+          [key, prev.id],
+        )
+      ).rows[0]?.audit_raw;
+
     const id =
       prev?.id ||
       "directory-" +
@@ -156,13 +166,7 @@ export async function importDirectory(
     if (address)
       Object.assign(fields, { address, ...addressLocation(address) });
     if (city) fields.city = city + ", CA";
-    const species = row["Animals Treated"].toLowerCase();
-    if (species)
-      fields.species = ["Dog", "Cat", "Rabbit", "Bird", "Reptile"].filter((s) =>
-        new RegExp(s === "Reptile" ? "reptile|lizard" : s.toLowerCase()).test(
-          species,
-        ),
-      );
+    Object.assign(fields, directorySpeciesFields(row, audit));
     if (audit) {
       fields.scope = `${scope}\nSpecies: ${audit["Species evidence / limits"]} Call to confirm current capability.`;
       fields.services = [
@@ -195,7 +199,7 @@ export async function importDirectory(
         ],
       );
     }
-    if (fields.species) Object.assign(fields, providerSpecies(fields.species as string[]));
+
     await applySourceFields(c, id, prev, fields);
     await c.query(
       `INSERT INTO directory_sources(source_key,provider_id,pricing_raw,audit_raw) VALUES($1,$2,$3,$4) ON CONFLICT(source_key) DO UPDATE SET pricing_raw=$3,audit_raw=COALESCE($4,directory_sources.audit_raw),imported_at=now()`,

@@ -29,6 +29,7 @@ import {
   Empty,
 } from "./shared";
 import { Checkboxes } from "./clinic";
+import { speciesGroups, exoticTypes, farmTypes } from "@/lib/species";
 export default function Admin({
   providers,
   refreshProviders,
@@ -525,6 +526,7 @@ function EditProvider({
   saved: () => void;
 }) {
   const [species, setSpecies] = useState(p.species);
+  const [subtypes, setSubtypes] = useState(p.species_subtypes || []);
   const [services, setServices] = useState(p.services);
   const [error, setError] = useState("");
   return (
@@ -545,6 +547,7 @@ function EditProvider({
               phone: d.phone ? String(d.phone).replace(/\D/g, "") : null,
               version: p.version,
               species,
+              species_subtypes: subtypes,
               services,
               exam_fee: d.exam_fee ? Number(d.exam_fee) : null,
             });
@@ -602,10 +605,24 @@ function EditProvider({
         <div className="span-2">
           <p className="tiny">Species</p>
           <Checkboxes
-            choices={["Dog", "Cat", "Rabbit", "Bird", "Reptile"]}
+            choices={[...speciesGroups]}
             values={species}
             set={setSpecies}
           />
+          {species.includes("Exotics") && (
+            <Checkboxes
+              choices={exoticTypes}
+              values={subtypes}
+              set={setSubtypes}
+            />
+          )}
+          {species.includes("Farm animals") && (
+            <Checkboxes
+              choices={farmTypes}
+              values={subtypes}
+              set={setSubtypes}
+            />
+          )}
         </div>
         <div className="span-2">
           <p className="tiny">Services</p>

@@ -16,6 +16,8 @@ export type Provider = {
   lng: number | null;
   species: string[];
   species_subtypes?: string[];
+  species_evidence?: string;
+  species_list_complete?: boolean;
   fictional?: boolean;
   activity?: {
     tone: string;
@@ -99,22 +101,24 @@ export function interpret(text: string) {
     species = "Exotics";
     subtype = "Small mammal";
   } else if (
-    /\b(horse|pony|cattle|cow|goat|sheep|pig|chicken|hen|duck|poultry)\b/.test(
+    /\b(horse|pony|donkey|cattle|cow|goat|sheep|pig|chicken|hen|duck|poultry)\b/.test(
       s,
     )
   ) {
     species = "Farm animals";
     subtype = /horse|pony/.test(s)
       ? "Horse"
-      : /cattle|cow/.test(s)
-        ? "Cattle"
-        : /goat/.test(s)
-          ? "Goat"
-          : /sheep/.test(s)
-            ? "Sheep"
-            : /pig/.test(s)
-              ? "Pig"
-              : "Poultry";
+      : /donkey/.test(s)
+        ? "Donkey"
+        : /cattle|cow/.test(s)
+          ? "Cattle"
+          : /goat/.test(s)
+            ? "Goat"
+            : /sheep/.test(s)
+              ? "Sheep"
+              : /pig/.test(s)
+                ? "Pig"
+                : "Poultry";
   } else if (/\b(exotic|exotics)\b/.test(s)) species = "Exotics";
   else if (/\b(farm|livestock)\b/.test(s)) species = "Farm animals";
   else if (/\b(fish|hedgehog|axolotl|other species)\b/.test(s)) {

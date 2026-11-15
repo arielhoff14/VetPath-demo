@@ -3,11 +3,11 @@ export const demoClinics = [
   {
     id: "demo-harbor",
     name: "Harbor Pet Urgent Care",
-    city: "San Francisco, CA",
-    lat: 37.773,
-    lng: -122.414,
-    species: ["Dog", "Cat"],
-    subtypes: [],
+    city: "San Jose, CA",
+    lat: 37.354,
+    lng: -121.903,
+    species: ["Dog", "Cat", "Exotics"],
+    subtypes: ["Rabbit", "Bird"],
     rooms: 4,
     doctors: 2,
     support: 4,
@@ -29,11 +29,21 @@ export const demoClinics = [
   {
     id: "demo-valley",
     name: "Valley Mixed Animal Care",
-    city: "Lafayette, CA",
-    lat: 37.886,
-    lng: -122.118,
-    species: ["Dog", "Cat", "Farm animals"],
-    subtypes: ["Horse", "Cattle", "Goat", "Sheep", "Pig", "Poultry"],
+    city: "San Jose, CA",
+    lat: 37.295,
+    lng: -121.82,
+    species: ["Dog", "Cat", "Exotics", "Farm animals"],
+    subtypes: [
+      "Reptile",
+      "Small mammal",
+      "Horse",
+      "Donkey",
+      "Cattle",
+      "Goat",
+      "Sheep",
+      "Pig",
+      "Poultry",
+    ],
     rooms: 6,
     doctors: 2,
     support: 4,
@@ -53,8 +63,8 @@ export async function seedFictionalClinics(c: PoolClient, reset = false) {
     );
     if (reset) {
       await c.query(
-        "UPDATE providers SET name=$2,species=$3,species_subtypes=$4,services=ARRAY['Urgent care','General practice'],partner=true,version=version+1,updated_at=now() WHERE id=$1 AND fictional=true",
-        [p.id, p.name, p.species, p.subtypes],
+        "UPDATE providers SET name=$2,species=$3,species_subtypes=$4,city=$5,lat=$6,lng=$7,services=ARRAY['Urgent care','General practice'],partner=true,version=version+1,updated_at=now() WHERE id=$1 AND fictional=true",
+        [p.id, p.name, p.species, p.subtypes, p.city, p.lat, p.lng],
       );
       await c.query(
         `UPDATE intakes SET archived_at=now(),updated_at=now(),version=version+1 WHERE provider_id=$1 AND archived_at IS NULL`,

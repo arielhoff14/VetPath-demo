@@ -70,3 +70,7 @@ SELECT o.*,
  COALESCE((SELECT sum(CASE i.workload WHEN 'Light' THEN 1 WHEN 'Intensive' THEN 4 ELSE 2 END)::int FROM intakes i WHERE i.provider_id=o.provider_id AND i.stage IN ('Arrived','In care') AND i.archived_at IS NULL),0) AS workload,
  GREATEST(o.updated_at,(SELECT max(i.updated_at) FROM intakes i WHERE i.provider_id=o.provider_id AND i.archived_at IS NULL)) AS activity_updated_at
 FROM clinic_operations o;
+
+-- Preserve the full source species statement, including conditional care and exclusions.
+ALTER TABLE providers ADD COLUMN IF NOT EXISTS species_evidence text NOT NULL DEFAULT '';
+ALTER TABLE providers ADD COLUMN IF NOT EXISTS species_list_complete boolean NOT NULL DEFAULT true;

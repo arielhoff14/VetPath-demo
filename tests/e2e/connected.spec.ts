@@ -32,20 +32,18 @@ test("connected owner and clinic lifecycle changes real workload, messages, even
   await op
     .getByLabel("Tell us about your pet")
     .fill(
-      "My dog is limping after a walk for two hours in 94103. I need urgent care.",
+      "My dog is limping after a walk for two hours in 95112. I need urgent care.",
     );
   await op.getByRole("button", { name: "Send message", exact: true }).click();
   await expect(op.getByLabel("Pet species", { exact: true })).toHaveValue(
     "Dog",
   );
-  const card = op
-    .locator(".provider-card")
-    .filter({
-      has: op.getByRole("button", {
-        name: "Harbor Pet Urgent Care",
-        exact: true,
-      }),
-    });
+  const card = op.locator(".provider-card").filter({
+    has: op.getByRole("button", {
+      name: "Harbor Pet Urgent Care",
+      exact: true,
+    }),
+  });
   await expect(card).toContainText("Lower activity");
   await card.getByRole("button", { name: "Send inquiry", exact: true }).click();
   await op.getByLabel("Your name").fill("Fictional Casey");
@@ -206,6 +204,7 @@ test("species, duplicates, restrictions, stale data, overrides, resource changes
         data: {
           ...body,
           providerId: "demo-harbor",
+          speciesSubtype: "Reptile",
           submissionKey: randomUUID(),
         },
       })
@@ -299,7 +298,7 @@ test("species, duplicates, restrictions, stale data, overrides, resource changes
   for (const message of [
     "Our cockatiel has a sore wing in San Jose for 3 hours",
     "A goat is limping in Lafayette since yesterday",
-    "My axolotl needs a clinic in 94103",
+    "My axolotl needs a clinic in 95112",
   ]) {
     const r = await (
       await owner.request.post("/api/assistant", { data: { message } })

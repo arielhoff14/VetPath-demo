@@ -114,7 +114,7 @@ try {
   await op
     .getByLabel("Tell us about your pet")
     .pressSequentially(
-      "My cat Maple has been limping with a sore front paw for three hours in 94103. Please help me find urgent care.",
+      "My cat Maple has been limping with a sore front paw for three hours in 95112. Please help me find urgent care.",
       { delay: 35 },
     );
   await op.getByRole("button", { name: "Send message", exact: true }).click();

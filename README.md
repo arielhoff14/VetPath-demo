@@ -50,7 +50,7 @@ The role menu intentionally creates **demo** sessions; it is not production staf
 
 - Original spreadsheet: [Veterinary Emergency-Care Interview Tracker](https://docs.google.com/spreadsheets/d/1Bm70UnTK56-J-U9bgxAUKzTwmA6JIlIn8DYnUudk_TE/edit?gid=440460470#gid=440460470).
 - Five interview rows become **four hospital records**; both MedVet interviews are retained.
-- Regional source tabs and public branch evidence produce **29 sourced providers**, plus **three explicitly fictional practice clinics**. See [source notes](docs/SOURCES.md).
+- Regional source tabs and public branch evidence produce **31 sourced providers**, plus **three explicitly fictional practice clinics**. See [source notes](docs/SOURCES.md).
 - All initial hospitals are nonpartners except SAGE’s **explicitly simulated** partnership. Fictional patients and staff are clearly labeled. No real clinic is contacted.
 - Unknown species, phone numbers, pricing, and intake status remain unknown. VEG Sacramento’s exact branch is unresolved and is not given fabricated contact details or a precise map pin.
 - Every listing includes its source, source-check date, and update time. Historical interview prices are qualified and never determine emergency ranking.
@@ -91,4 +91,6 @@ See [deployment instructions](docs/DEPLOYMENT.md) for Docker and Node hosting, e
 
 ### Regional directory and location search
 
-The default owner view lists all 29 sourced provider records and the three labeled practice clinics. Enter a city, ZIP, ZIP+4, or use browser location to narrow by distance. San Jose searches include the nearby Campbell and Mountain View hospitals with their correct city labels. The bundled location index supports 569 ZIP codes across the nine Bay Area counties plus Sacramento. Google Sheets sync imports Interview Tracker, Pricing Comparison and Website Audit together. See [source details](docs/SOURCES.md) and [regression checks](docs/TESTING.md).
+The default owner view lists all 31 sourced provider records and the three labeled practice clinics. Enter a city, ZIP, ZIP+4, or use browser location to narrow by distance. San Jose searches include the nearby Campbell and Mountain View hospitals with their correct city labels. The bundled location index supports 569 ZIP codes across the nine Bay Area counties plus Sacramento. Google Sheets sync imports Interview Tracker, Pricing Comparison and Website Audit together. See [source details](docs/SOURCES.md) and [regression checks](docs/TESTING.md).
+
+Species and San Jose demonstration data were re-audited; see [species evidence and limitations](docs/SPECIES-AUDIT.md).
