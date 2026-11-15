@@ -1,0 +1,43 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: vetpath
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vetpath_local}
+      POSTGRES_DB: vetpath
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vetpath -d vetpath"]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+  app:
+    build: .
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      DATABASE_URL: postgresql://vetpath:${POSTGRES_PASSWORD:-vetpath_local}@db:5432/vetpath
+      SESSION_SECRET: ${SESSION_SECRET:?Set a random SESSION_SECRET in .env}
+      DEMO_MODE: "true"
+      COOKIE_SECURE: "false"
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4.1-mini}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/api/health').then(r=>{if(!r.ok)process.exit(1)})",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+volumes:
+  postgres_data:
