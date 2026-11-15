@@ -2,7 +2,7 @@
 
 A veterinary care marketplace demo built from scratch with **Next.js 16, TypeScript, React 19, and PostgreSQL 17**. Owner discovery, clinic operations, directory management, and insights share one database and backend.
 
-**Public demo:** https://vetpath-web-production.up.railway.app
+**Public demo:** https://vetpathdemo.up.railway.app
 
 **Connected walkthrough and reset guide:** [docs/CONNECTED-DEMO.md](docs/CONNECTED-DEMO.md). Verified videos are published as [GitHub release assets](https://github.com/arielhoff14/VetPath-demo/releases).
 

@@ -32,7 +32,7 @@ Do not commit `.env` files. Rotate the signing secret when transitioning away fr
 
 ## Current deployment status
 
-Public demo: **https://vetpath-web-production.up.railway.app**
+Public demo: **https://vetpathdemo.up.railway.app**
 
 Deployed to Railway from the `feat/vetpath-demo` branch in `arielhoff14/VetPath-demo`. The web service runs the supplied Dockerfile, connects to PostgreSQL through Railway's private network, and uses secure HTTPS session cookies. `/api/health` confirms database connectivity. The database has a persistent Railway volume and no public TCP proxy was created.
 
