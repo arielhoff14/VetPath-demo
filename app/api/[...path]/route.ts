@@ -1,3 +1,14 @@
+import { allSpeciesValues, providerSpecies } from "@/lib/species";
+import {
+  activityFor,
+  createInquiry,
+  updatePatient,
+  updateOperations,
+  WorkflowError,
+  transaction,
+} from "@/lib/workflows";
+import { calculateActivity, ownerActivity } from "@/lib/activity";
+import { seedFictionalClinics } from "@/lib/demo";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { pool, query } from "@/lib/db";
@@ -23,8 +34,12 @@ const edit = z
       .optional(),
     address: text.optional(),
     species: z
-      .array(z.enum(["Dog", "Cat", "Rabbit", "Bird", "Reptile"]))
+      .array(z.string().refine((s) => allSpeciesValues.includes(s)))
       .max(10)
+      .optional(),
+    species_subtypes: z
+      .array(z.string().trim().min(1).max(80))
+      .max(20)
       .optional(),
     services: z
       .array(
@@ -131,14 +146,73 @@ async function handle(
       if (s!.role === "clinic" && s!.clinicId !== clinicId)
         throw new Error("Forbidden");
     };
-    if (area === "providers" && method === "GET")
+    if (area === "providers" && method === "GET") {
+      const providers = (
+        await query(
+          `SELECT id,name,city,category,phone,address,postal_code,coordinate_source,address_checked,website,lat,lng,species,species_subtypes,services,hours,scope,cost_note,exam_fee,source_url,source_checked,source_kind,source_notes,partner,fictional,availability,availability_at,updated_at,version,simulated,field_overrides FROM providers ORDER BY name`,
+        )
+      ).rows;
+      const operations = (await query("SELECT * FROM clinic_activity_inputs"))
+        .rows;
       return NextResponse.json(
-        (
-          await query(
-            `SELECT id,name,city,category,phone,address,postal_code,coordinate_source,address_checked,website,lat,lng,species,services,hours,scope,cost_note,exam_fee,source_url,source_checked,source_kind,source_notes,partner,availability,availability_at,updated_at,version,simulated,field_overrides FROM providers ORDER BY name`,
-          )
-        ).rows,
+        providers.map((p) => {
+          const row = operations.find((o) => o.provider_id === p.id);
+          return {
+            ...p,
+            activity: row
+              ? ownerActivity(
+                  calculateActivity({
+                    ...row,
+                    verified_at: row.verified_at?.toISOString(),
+                    updated_at: row.activity_updated_at?.toISOString(),
+                    override_until: row.override_until?.toISOString(),
+                  }),
+                )
+              : null,
+          };
+        }),
       );
+    }
+    if (area === "activity") {
+      ownClinic(id);
+      if (method === "GET")
+        return NextResponse.json(await activityFor(pool, id));
+      if (method === "PATCH")
+        return NextResponse.json(await updateOperations(id, await req.json()));
+    }
+    if (area === "demo" && id === "reset" && method === "POST") {
+      mustAdmin();
+      if (process.env.DEMO_MODE !== "true")
+        throw new WorkflowError("Demo reset is disabled.", 403);
+      const b = z
+        .object({
+          confirmation: z.literal("RESET FICTIONAL CLINICS"),
+          requestKey: z.string().uuid(),
+        })
+        .parse(await req.json());
+      return NextResponse.json(
+        await transaction(async (c) => {
+          await c.query("SELECT pg_advisory_xact_lock(746382)");
+          if (
+            (
+              await c.query(
+                "SELECT request_key FROM demo_resets WHERE request_key=$1",
+                [b.requestKey],
+              )
+            ).rowCount
+          )
+            return { ok: true, duplicate: true };
+          await seedFictionalClinics(c, true);
+          await c.query("INSERT INTO demo_resets(request_key) VALUES($1)", [
+            b.requestKey,
+          ]);
+          await c.query(
+            "INSERT INTO audit(entity,entity_id,action,actor) VALUES('demo','fictional-clinics','Fictional clinic demo reset; previous cases archived','admin')",
+          );
+          return { ok: true };
+        }),
+      );
+    }
     if (area === "providers" && method === "PATCH") {
       ownClinic(id);
       const body = edit.parse(await req.json());
@@ -146,6 +220,12 @@ async function handle(
         throw new Error("Forbidden");
       const { version, ...changes } = body;
       const updates: Record<string, unknown> = { ...changes };
+      if (changes.species)
+        Object.assign(updates, providerSpecies(changes.species), {
+          species_subtypes:
+            changes.species_subtypes ||
+            providerSpecies(changes.species).species_subtypes,
+        });
       if (changes.address)
         Object.assign(updates, addressLocation(changes.address));
       const fields = Object.keys(updates);
@@ -240,62 +320,16 @@ async function handle(
     if (area === "intakes") {
       if (method === "GET" && !id) {
         const result = await query(
-          `SELECT i.*,p.name AS provider_name FROM intakes i JOIN providers p ON p.id=i.provider_id WHERE ${s.role === "admin" ? "true" : s.role === "clinic" ? "i.provider_id=$1" : "i.owner_session=$1"} ORDER BY i.created_at DESC`,
+          `SELECT i.*,p.name AS provider_name FROM intakes i JOIN providers p ON p.id=i.provider_id WHERE i.archived_at IS NULL AND ${s.role === "admin" ? "true" : s.role === "clinic" ? "i.provider_id=$1" : "i.owner_session=$1"} ORDER BY i.created_at DESC`,
           s.role === "admin" ? [] : [s.role === "clinic" ? s.clinicId : s.id],
         );
         return NextResponse.json(result.rows);
       }
       if (method === "POST" && !id) {
-        const b = z
-          .object({
-            providerId: text,
-            ownerName: z.string().trim().min(1).max(120),
-            petName: z.string().trim().min(1).max(80),
-            species: z.enum(["Dog", "Cat", "Rabbit", "Bird", "Reptile"]),
-            concern: text,
-            duration: z.string().max(120),
-            contact: z.string().trim().min(5).max(150),
-          })
-          .parse(await req.json());
-        const p = (
-          await query("SELECT * FROM providers WHERE id=$1", [b.providerId])
-        ).rows[0];
-        if (!p?.partner)
-          return NextResponse.json(
-            {
-              error:
-                "This clinic does not accept demo intakes. Call the clinic directly.",
-            },
-            { status: 400 },
-          );
-        const c = await pool.connect();
-        try {
-          await c.query("BEGIN");
-          const r = await c.query(
-            `INSERT INTO intakes(provider_id,owner_session,owner_name,pet_name,species,concern,duration,contact) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
-            [
-              b.providerId,
-              s.id,
-              b.ownerName,
-              b.petName,
-              b.species,
-              b.concern,
-              b.duration,
-              b.contact,
-            ],
-          );
-          await c.query(
-            `INSERT INTO events(kind,provider_id,metadata) VALUES('intake_submitted',$1,$2)`,
-            [b.providerId, { species: b.species }],
-          );
-          await c.query("COMMIT");
-          return NextResponse.json(r.rows[0], { status: 201 });
-        } catch (e) {
-          await c.query("ROLLBACK");
-          throw e;
-        } finally {
-          c.release();
-        }
+        const result = await createInquiry(await req.json(), s);
+        return NextResponse.json(result, {
+          status: result.duplicate ? 200 : 201,
+        });
       }
       const intake = (await query("SELECT * FROM intakes WHERE id=$1", [id]))
         .rows[0];
@@ -348,7 +382,7 @@ async function handle(
           })
           .parse(await req.json());
         const r = await query(
-          `UPDATE intakes SET owner_name=$1,pet_name=$2,concern=$3,duration=$4,contact=$5,version=version+1,updated_at=now() WHERE id=$6 AND version=$7 AND stage IN ('New','Reviewing') RETURNING *`,
+          `UPDATE intakes SET owner_name=$1,pet_name=$2,concern=$3,duration=$4,contact=$5,receiving_summary='Updated owner report for ' || $2 || ': ' || $3 || '. Duration: ' || $4 || '. Veterinary staff must review the original report; clinical urgency is unassessed.',version=version+1,updated_at=now() WHERE id=$6 AND version=$7 AND stage IN ('New','Reviewing') RETURNING *`,
           [
             b.owner_name,
             b.pet_name,
@@ -386,65 +420,8 @@ async function handle(
         );
         return NextResponse.json({ ok: true });
       }
-      if (method === "PATCH") {
-        const b = z
-          .object({
-            version: z.number().int(),
-            stage: z.enum([
-              "New",
-              "Reviewing",
-              "Expected",
-              "Arrived",
-              "In care",
-              "Discharged",
-              "Transferred",
-            ]),
-            urgency: z.enum(["Unassessed", "Routine", "Urgent", "Critical"]),
-          })
-          .parse(await req.json());
-        if (!allowedStage(intake.stage, b.stage))
-          return NextResponse.json(
-            {
-              error:
-                "Invalid stage transition. Transfers require an accepted handoff.",
-            },
-            { status: 400 },
-          );
-        const c = await pool.connect();
-        try {
-          await c.query("BEGIN");
-          const r = await c.query(
-            `UPDATE intakes SET stage=$1,urgency=$2,version=version+1,updated_at=now() WHERE id=$3 AND version=$4 RETURNING *`,
-            [b.stage, b.urgency, id, b.version],
-          );
-          if (!r.rowCount) {
-            await c.query("ROLLBACK");
-            return NextResponse.json(
-              {
-                error:
-                  "Intake changed in another session. Reload and try again.",
-              },
-              { status: 409 },
-            );
-          }
-          if (b.stage === "Arrived" && intake.stage !== "Arrived")
-            await c.query(
-              `INSERT INTO events(kind,provider_id,metadata) VALUES('confirmed_arrival',$1,$2)`,
-              [intake.provider_id, { intakeId: id }],
-            );
-          await c.query(
-            `INSERT INTO audit(entity,entity_id,action,actor,detail) VALUES('intake',$1,'Patient stage or assessment updated',$2,$3)`,
-            [id, s.role, b],
-          );
-          await c.query("COMMIT");
-          return NextResponse.json(r.rows[0]);
-        } catch (e) {
-          await c.query("ROLLBACK");
-          throw e;
-        } finally {
-          c.release();
-        }
-      }
+      if (method === "PATCH")
+        return NextResponse.json(await updatePatient(id, await req.json(), s));
       if (sub === "handoff" && method === "POST") {
         const b = z
           .object({ toProvider: text, summary: text })
@@ -545,11 +522,22 @@ async function handle(
         );
       if (method === "POST") {
         const b = z
-          .object({ name: text, role: text, shift: text })
+          .object({
+            name: text,
+            role: text,
+            shift: text,
+            role_type: z
+              .enum(["doctor", "clinical_support", "nonclinical"])
+              .default("nonclinical"),
+          })
           .parse(await req.json());
         await query(
-          "INSERT INTO coverage(provider_id,name,role,shift) VALUES($1,$2,$3,$4)",
-          [clinicId, b.name, b.role, b.shift],
+          "INSERT INTO coverage(provider_id,name,role,shift,role_type) VALUES($1,$2,$3,$4,$5)",
+          [clinicId, b.name, b.role, b.shift, b.role_type],
+        );
+        await query(
+          "UPDATE clinic_operations SET verified_at=now(),updated_at=now(),version=version+1 WHERE provider_id=$1",
+          [clinicId],
         );
         await query(
           `INSERT INTO audit(entity,entity_id,action,actor) VALUES('coverage',$1,'Staff coverage added',$2)`,
@@ -561,6 +549,10 @@ async function handle(
       await query(
         "UPDATE coverage SET on_duty=$1 WHERE id=$2 AND provider_id=$3",
         [b.on_duty, id, clinicId],
+      );
+      await query(
+        "UPDATE clinic_operations SET verified_at=now(),updated_at=now(),version=version+1 WHERE provider_id=$1",
+        [clinicId],
       );
       await query(
         `INSERT INTO audit(entity,entity_id,action,actor) VALUES('coverage',$1,'Staff shift updated',$2)`,
@@ -755,6 +747,7 @@ async function handle(
                 "source_notes",
                 "source_kind",
                 "species",
+                "species_subtypes",
               ].includes(conflict.field)
             )
               throw new Error("Invalid field");
@@ -823,11 +816,19 @@ async function handle(
       ).rows;
       const workload = (
         await query(
-          `SELECT p.id,p.name,count(i.id)::int total,count(i.id) FILTER(WHERE i.stage NOT IN ('Discharged','Transferred'))::int active FROM providers p LEFT JOIN intakes i ON i.provider_id=p.id AND i.created_at>now()-$1*interval '1 day' GROUP BY p.id ORDER BY total DESC`,
+          `SELECT p.id,p.name,count(i.id)::int total,count(i.id) FILTER(WHERE i.stage IN ('Arrived','In care') AND i.archived_at IS NULL)::int active FROM providers p LEFT JOIN intakes i ON i.provider_id=p.id AND i.created_at>now()-$1*interval '1 day' GROUP BY p.id ORDER BY total DESC`,
           [days],
         )
       ).rows;
       return NextResponse.json({
+        activities: await Promise.all(
+          (await query("SELECT provider_id FROM clinic_operations")).rows.map(
+            async (p) => ({
+              providerId: p.provider_id,
+              ...(await activityFor(pool, p.provider_id)),
+            }),
+          ),
+        ),
         counts,
         categories,
         species,
@@ -842,6 +843,11 @@ async function handle(
     }
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   } catch (error) {
+    if (error instanceof WorkflowError)
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.status },
+      );
     if (error instanceof z.ZodError)
       return NextResponse.json(
         {

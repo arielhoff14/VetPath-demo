@@ -1,4 +1,6 @@
 "use client";
+import { SpeciesFields } from "./species-fields";
+import { speciesMatch, speciesLabel } from "@/lib/species";
 import { useState, useMemo } from "react";
 import { locationSuggestions } from "@/lib/locations";
 import {
@@ -60,6 +62,7 @@ export default function Owner({ providers }: { providers: Provider[] }) {
     { role: string; text: string }[]
   >([]);
   const [busy, setBusy] = useState(false);
+  const [organized, setOrganized] = useState<any>(null);
   const [assistantMode, setAssistantMode] = useState("rule-based");
   const [emergency, setEmergency] = useState(false);
   const [error, setError] = useState("");
@@ -97,17 +100,24 @@ export default function Owner({ providers }: { providers: Provider[] }) {
     try {
       const d = await api("assistant", "POST", { message: value });
       setAssistantMode(d.mode);
+      setOrganized(d);
       setEmergency(d.emergency);
       setFilters((f) => ({
         ...f,
-        ...(d.species ? { species: d.species } : {}),
+        ...(d.species ? { species: d.species, subtype: d.subtype || "" } : {}),
         ...(d.service ? { service: d.service } : {}),
         ...(d.location
           ? { location: d.location, lat: undefined, lng: undefined }
           : {}),
         available: d.emergency ? false : f.available,
       }));
-      setConversation((c) => [...c, { role: "assistant", text: d.reply }]);
+      setConversation((c) => [
+        ...c,
+        {
+          role: "assistant",
+          text: d.reply + (d.missing?.length ? "\n" + d.missing.join(" ") : ""),
+        },
+      ]);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -195,6 +205,17 @@ export default function Owner({ providers }: { providers: Provider[] }) {
           </svg>
         </div>
       </section>
+      <ol className="owner-steps" aria-label="How to find care">
+        <li>
+          <b>1</b> Tell us what’s happening
+        </li>
+        <li>
+          <b>2</b> Check the clinic’s fit
+        </li>
+        <li>
+          <b>3</b> Call or send an inquiry
+        </li>
+      </ol>
       <div className="emergency-strip">
         <span>
           <TriangleAlert size={16} />
@@ -307,7 +328,7 @@ export default function Owner({ providers }: { providers: Provider[] }) {
                 Guidance, not a diagnosis.{" "}
                 {assistantMode === "ai"
                   ? "AI-assisted search"
-                  : "Rule-based demo assistant"}
+                  : "AI not configured · structured demo helper"}
                 .
               </span>
             </div>
@@ -382,20 +403,15 @@ export default function Owner({ providers }: { providers: Provider[] }) {
               </Notice>
             )}
           <div className="quick-filters">
-            <label>
-              <PawPrint size={14} />
-              <select
-                aria-label="Pet species"
-                value={filters.species}
-                onChange={(e) => change("species", e.target.value)}
-              >
-                {["Any pet", "Dog", "Cat", "Rabbit", "Bird", "Reptile"].map(
-                  (x) => (
-                    <option key={x}>{x}</option>
-                  ),
-                )}
-              </select>
-            </label>
+            <SpeciesFields
+              filter
+              species={filters.species}
+              subtype={filters.subtype || ""}
+              setSpecies={(value) =>
+                setFilters((f) => ({ ...f, species: value, subtype: "" }))
+              }
+              setSubtype={(value) => change("subtype", value)}
+            />
             <label>
               <Stethoscope size={14} />
               <select
@@ -425,7 +441,7 @@ export default function Owner({ providers }: { providers: Provider[] }) {
               onClick={() => change("available", !filters.available)}
             >
               <span className="status-dot" />
-              {filters.available ? "Accepting only" : "Accepting patients"}
+              {filters.available ? "Open inquiries only" : "Open for inquiries"}
             </button>
           </div>
           {showFilters && (
@@ -669,7 +685,10 @@ export default function Owner({ providers }: { providers: Provider[] }) {
               </p>
               <p>
                 Species:{" "}
-                {selected.species.join(", ") || "Not confirmed. Call to check."}
+                {[
+                  ...selected.species,
+                  ...(selected.species_subtypes || []),
+                ].join(", ") || "Not confirmed. Call to check."}
               </p>
               <p>
                 Intake: <strong>{liveAvailability(selected)}</strong>
@@ -693,11 +712,13 @@ export default function Owner({ providers }: { providers: Provider[] }) {
             <ShieldCheck size={20} />
             <div>
               <strong>
-                {selected.source_kind === "spreadsheet"
-                  ? "Interview tracker & public contact source"
-                  : selected.source_kind === "directory"
-                    ? "Spreadsheet directory & public branch sources"
-                    : "Public website information"}
+                {selected.fictional
+                  ? "Fictional demo data"
+                  : selected.source_kind === "spreadsheet"
+                    ? "Interview tracker & public contact source"
+                    : selected.source_kind === "directory"
+                      ? "Spreadsheet directory & public branch sources"
+                      : "Public website information"}
               </strong>
               <p>{selected.source_notes}</p>
               {!!selected.field_overrides?.length && (
@@ -706,9 +727,11 @@ export default function Owner({ providers }: { providers: Provider[] }) {
                   Original source retained for comparison.
                 </p>
               )}
-              <a href={selected.source_url} target="_blank" rel="noreferrer">
-                View source <ExternalLink size={13} />
-              </a>
+              {selected.source_url && (
+                <a href={selected.source_url} target="_blank" rel="noreferrer">
+                  View source <ExternalLink size={13} />
+                </a>
+              )}
               <small>
                 Source checked {sourceDate(selected.source_checked)} · Directory
                 updated {time(selected.updated_at)}
@@ -719,18 +742,24 @@ export default function Owner({ providers }: { providers: Provider[] }) {
           {selected.partner && (
             <button
               className="primary full"
+              disabled={selected.activity?.accepting === false}
               onClick={() => {
                 setIntake(selected);
                 setSelected(null);
               }}
             >
-              Send a demo intake <ArrowRight size={16} />
+              Send inquiry <ArrowRight size={16} />
             </button>
           )}
         </Modal>
       )}
       {intake && (
         <IntakeForm
+          initial={{
+            ...filters,
+            concern: organized?.concern || "",
+            duration: organized?.duration || "",
+          }}
           provider={intake}
           close={() => setIntake(null)}
           done={() => {
@@ -776,6 +805,7 @@ function ProviderCard({
                 ? "EMERGENCY & VETERINARY CARE"
                 : p.category.toUpperCase()}
             </span>
+            {p.fictional && <Badge tone="blue">Fictional demo clinic</Badge>}
             {p.partner && (
               <Badge tone="teal">
                 <Check size={11} /> Demo partner
@@ -813,36 +843,48 @@ function ProviderCard({
           {selected ? <Check size={15} /> : <Plus size={15} />}
         </button>
       </div>
-      <div className="provider-status">
-        <div>
-          <span
-            className={
-              "status-dot " +
-              (availability === "Accepting"
-                ? ""
-                : availability === "Limited"
-                  ? "amber"
-                  : "gray")
-            }
-          />
-          <strong>
-            {availability === "Unknown"
-              ? "Call to confirm availability"
-              : availability === "Accepting"
-                ? "Accepting patients"
-                : availability}
-          </strong>
-          {p.simulated && <span className="simulated-label">Simulated</span>}
+      {p.reasons && <p className="match-facts">{p.reasons.join(" · ")}</p>}
+      {p.activity ? (
+        <div className={`owner-activity ${p.activity.tone}`}>
+          <strong>{p.activity.label}</strong>
+          <span>{p.activity.acceptance}</span>
+          <small>
+            Demo assumptions · Updated {time(p.activity.updated_at)}
+            {p.activity.overridden ? " · Staff override" : ""}
+          </small>
         </div>
-        <span>
-          <Clock3 size={12} />
-          {p.hours.includes("24/7")
-            ? "Open 24/7 · published hours"
-            : p.category === "Specialty"
-              ? "Specialty hours vary"
-              : "Confirm hours"}
-        </span>
-      </div>
+      ) : (
+        <div className="provider-status">
+          <div>
+            <span
+              className={
+                "status-dot " +
+                (availability === "Accepting"
+                  ? ""
+                  : availability === "Limited"
+                    ? "amber"
+                    : "gray")
+              }
+            />
+            <strong>
+              {availability === "Unknown"
+                ? "Call to confirm availability"
+                : availability === "Accepting"
+                  ? "Accepting patients"
+                  : availability}
+            </strong>
+            {p.simulated && <span className="simulated-label">Simulated</span>}
+          </div>
+          <span>
+            <Clock3 size={12} />
+            {p.hours.includes("24/7")
+              ? "Open 24/7 · published hours"
+              : p.category === "Specialty"
+                ? "Specialty hours vary"
+                : "Confirm hours"}
+          </span>
+        </div>
+      )}
       <div className="provider-card-bottom">
         <button className="why-match" onClick={details}>
           <ShieldCheck size={14} />
@@ -854,8 +896,15 @@ function ProviderCard({
         <div className="card-actions">
           <ContactLinks p={p} compact />
           {p.partner && (
-            <button className="primary small" onClick={intake}>
-              Send intake <ArrowRight size={14} />
+            <button
+              className="primary small"
+              disabled={p.activity?.accepting === false}
+              onClick={intake}
+            >
+              {p.activity?.accepting === false
+                ? "Not accepting today"
+                : "Send inquiry"}{" "}
+              <ArrowRight size={14} />
             </button>
           )}
         </div>
@@ -870,6 +919,10 @@ export function ContactLinks({
   p: Provider;
   compact?: boolean;
 }) {
+  if (p.fictional)
+    return (
+      <span className="tiny">Practice clinic · no real calls or travel</span>
+    );
   function track(kind: string) {
     api("events", "POST", { kind, providerId: p.id }).catch(() => {});
   }
@@ -910,19 +963,34 @@ export function ContactLinks({
 }
 function IntakeForm({
   provider,
+  initial,
   close,
   done,
 }: {
   provider: Provider;
+  initial: Filters & { concern: string; duration: string };
   close: () => void;
   done: () => void;
 }) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [species, setSpecies] = useState(
+    initial.species === "Any pet" ? "" : initial.species,
+  );
+  const [subtype, setSubtype] = useState(initial.subtype || "");
+  const [submissionKey] = useState(() => {
+    const slot = `vetpath-inquiry-${provider.id}`;
+    const old = sessionStorage.getItem(slot);
+    if (old) return old;
+    const key = crypto.randomUUID();
+    sessionStorage.setItem(slot, key);
+    return key;
+  });
+  const match = species ? speciesMatch(provider, species, subtype) : "unknown";
   return (
-    <Modal title="Help the care team prepare" close={close}>
+    <Modal title="Send a care inquiry" close={close}>
       <p className="muted">
-        Send a demo intake to <strong>{provider.name}</strong>. This does not
+        Send an inquiry to <strong>{provider.name}</strong>. This does not
         confirm an appointment or acceptance.
       </p>
       <div className="callout">
@@ -937,7 +1005,16 @@ function IntakeForm({
           setError("");
           const d = Object.fromEntries(new FormData(e.currentTarget));
           try {
-            await api("intakes", "POST", { ...d, providerId: provider.id });
+            await api("intakes", "POST", {
+              ...d,
+              species,
+              speciesSubtype: subtype,
+              submissionKey,
+              requestedService: initial.service,
+              allowUnknownSpecies: d.allowUnknownSpecies === "on",
+              providerId: provider.id,
+            });
+            sessionStorage.removeItem(`vetpath-inquiry-${provider.id}`);
             done();
           } catch (e) {
             setError((e as Error).message);
@@ -958,16 +1035,32 @@ function IntakeForm({
         <Field label="Pet’s name">
           <input required name="petName" maxLength={80} placeholder="Milo" />
         </Field>
-        <Field label="Species">
-          <select name="species">
-            {["Dog", "Cat", "Rabbit", "Bird", "Reptile"].map((x) => (
-              <option key={x}>{x}</option>
-            ))}
-          </select>
-        </Field>
+        <SpeciesFields
+          species={species}
+          subtype={subtype}
+          setSpecies={setSpecies}
+          setSubtype={setSubtype}
+        />
+        {species && match === "mismatch" && (
+          <div className="span-2">
+            <Notice error>
+              This clinic does not list care for{" "}
+              {speciesLabel(species, subtype)}. Close this inquiry and choose an
+              appropriate clinic.
+            </Notice>
+          </div>
+        )}
+        {species && match === "unknown" && (
+          <label className="span-2 confirmation-check">
+            <input type="checkbox" name="allowUnknownSpecies" required />
+            Species eligibility is unconfirmed. I understand I must call this
+            clinic before travelling.
+          </label>
+        )}
         <Field label="How long has this been happening?">
           <input
             name="duration"
+            defaultValue={initial.duration}
             maxLength={120}
             placeholder="Since this morning"
           />
@@ -977,6 +1070,7 @@ function IntakeForm({
             <textarea
               required
               name="concern"
+              defaultValue={initial.concern}
               maxLength={3000}
               placeholder="Symptoms, behavior, medications, and anything the team should know"
             />
@@ -998,8 +1092,11 @@ function IntakeForm({
             <Notice error>{error}</Notice>
           </div>
         )}
-        <button className="primary span-2" disabled={busy}>
-          {busy ? "Sending…" : "Send demo intake"}
+        <button
+          className="primary span-2"
+          disabled={busy || match === "mismatch"}
+        >
+          {busy ? "Sending…" : "Send inquiry to clinic"}
           <Send size={15} />
         </button>
       </form>
@@ -1007,17 +1104,31 @@ function IntakeForm({
   );
 }
 function OwnerRequests({ close }: { close: () => void }) {
-  const { data, refresh } = useData<any[]>("intakes", []);
+  const {
+    data,
+    loading,
+    error: loadError,
+    refresh,
+  } = useData<any[]>("intakes", []);
   const [selected, setSelected] = useState("");
   const [editing, setEditing] = useState<any>(null);
   const [error, setError] = useState("");
   return (
     <Modal title="Your care requests" close={close} wide>
       <div className="callout">
-        Requests and messages stay inside this demo. A clinic must confirm
-        acceptance by phone before you travel.
+        Your inquiry is saved. Updates appear here automatically. Requests and
+        messages stay inside this demo. A clinic must confirm acceptance by
+        phone before you travel.
       </div>
-      {data.length === 0 ? (
+      {loadError && (
+        <Notice error>
+          {loadError}
+          <button onClick={refresh}>Try again</button>
+        </Notice>
+      )}
+      {loading ? (
+        <p role="status">Loading your inquiries…</p>
+      ) : data.length === 0 ? (
         <Empty
           title="No care requests yet"
           body="Find a demo partner clinic and send an intake to start."
@@ -1030,7 +1141,17 @@ function OwnerRequests({ close }: { close: () => void }) {
               <span>{x.provider_name}</span>
               <small>Sent {time(x.created_at)}</small>
             </div>
-            <Badge tone="teal">{x.stage}</Badge>
+            <Badge tone="teal">
+              {{
+                New: "Inquiry sent",
+                Reviewing: "Acknowledged",
+                Expected: "Expected",
+                Arrived: "Checked in",
+                "In care": "In care",
+                Discharged: "Visit complete",
+                Transferred: "Transferred",
+              }[x.stage as string] || x.stage}
+            </Badge>
             {["New", "Reviewing"].includes(x.stage) && (
               <button className="secondary" onClick={() => setEditing(x)}>
                 Edit request

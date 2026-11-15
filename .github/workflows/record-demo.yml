@@ -1,14 +1,8 @@
 name: Verify and record public demo
 on:
-  push:
-    branches: [feat/vetpath-demo]
-    paths:
-      - "scripts/record-demo.mjs"
-      - "scripts/render-demo.mjs"
-      - ".github/workflows/record-demo.yml"
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 jobs:
   record:
     runs-on: ubuntu-latest
@@ -25,8 +19,9 @@ jobs:
       - run: npx playwright install --with-deps chromium ffmpeg
       - name: Verify public database readiness
         run: curl --fail --show-error "$BASE_URL/api/health"
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - name: Record real owner, clinic, and administrator workflows
-        run: CHROMIUM_PATH="$(node -e "console.log(require('playwright').chromium.executablePath())")" node scripts/record-demo.mjs
+        run: CHROMIUM_PATH="$(node -e "console.log(require('playwright').chromium.executablePath())")" node scripts/record-connected-demo.mjs
       - name: Render MP4 with chapters
         run: |
           if ! command -v ffmpeg; then
@@ -43,3 +38,16 @@ jobs:
             artifacts/video/manifest.json
             artifacts/video/*.webm
           retention-days: 30
+
+      - name: Publish walkthrough and verification manifest
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cat > /tmp/video-notes.md <<'NOTES'
+          Live demo: https://vetpath-web-production.up.railway.app
+
+          Actual Playwright recording of the public Next.js/PostgreSQL app with independent owner and clinic sessions. Begins before a unique inquiry exists, shows creation, acknowledgment, arrival, clinical review, completion, owner updates and both refreshes. Activity changes 50% → 75% → 100% → 50%. The accompanying manifest contains persisted record IDs, timestamps and asserted event deltas.
+
+          Fictional cases and clinics only. Silent video with captions. The AI service is unconfigured; the disclosed structured fallback is demonstrated. Local/CI PostgreSQL integration tests additionally query database rows directly.
+          NOTES
+          gh release create connected-demo-${{ github.run_id }} artifacts/video/vetpath-demo.mp4 artifacts/video/manifest.json --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title 'VetPath connected workflow — verified walkthrough' --notes-file /tmp/video-notes.md --prerelease

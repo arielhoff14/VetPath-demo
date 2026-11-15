@@ -1,4 +1,11 @@
 "use client";
+import ActivityPanel from "./activity-panel";
+import {
+  speciesGroups,
+  exoticTypes,
+  farmTypes,
+  speciesLabel,
+} from "@/lib/species";
 import { useState } from "react";
 import {
   ArrowRight,
@@ -46,16 +53,34 @@ export default function Clinic({
   const [selected, setSelected] = useState<any>(null);
   const [search, setSearch] = useState("");
   const [stage, setStage] = useState("All stages");
+  const [queue, setQueue] = useState("Incoming inquiries");
   const [feedback, setFeedback] = useState("");
   const [error, setError] = useState("");
-  const { data: intakes, loading, refresh } = useData<any[]>("intakes", []);
+  const {
+    data: intakes,
+    loading,
+    error: loadError,
+    refresh,
+  } = useData<any[]>("intakes", []);
   const { data: handoffs, refresh: refreshHandoffs } = useData<any[]>(
     "handoffs",
     [],
   );
   const clinic = providers.find((p) => p.id === clinicId);
-  const active = intakes.filter(
-    (i) => !["Discharged", "Transferred"].includes(i.stage),
+  const visibleIntakes = intakes.filter(
+    (i) =>
+      (queue === "Incoming inquiries"
+        ? ["New", "Reviewing", "Expected"].includes(i.stage)
+        : queue === "At clinic"
+          ? ["Arrived", "In care"].includes(i.stage)
+          : ["Discharged", "Transferred"].includes(i.stage)) &&
+      (stage === "All stages" || i.stage === stage) &&
+      (i.pet_name + " " + i.owner_name + " " + i.concern)
+        .toLowerCase()
+        .includes(search.toLowerCase()),
+  );
+  const active = intakes.filter((i) =>
+    ["Arrived", "In care"].includes(i.stage),
   );
   async function handoffAction(id: string, status: string) {
     try {
@@ -74,8 +99,10 @@ export default function Clinic({
       <div className="workspace-header">
         <div className="workspace-title">
           <div className="eyebrow">VETPATH FOR CARE TEAMS</div>
-          <h1>A little more connected.</h1>
-          <p>Your patients, your team, and a clearer picture of the day.</p>
+          <h1>Today’s care board</h1>
+          <p>
+            Acknowledge inquiries, record arrivals, and keep owners informed.
+          </p>
         </div>
         <div className="workspace-actions">
           <span className="live-label">
@@ -86,11 +113,13 @@ export default function Clinic({
             value={clinicId}
             onChange={(e) => changeClinic(e.target.value)}
           >
-            {providers.map((p) => (
-              <option value={p.id} key={p.id}>
-                {p.name}
-              </option>
-            ))}
+            {[...providers]
+              .sort((a, b) => Number(b.fictional) - Number(a.fictional))
+              .map((p) => (
+                <option value={p.id} key={p.id}>
+                  {p.name}
+                </option>
+              ))}
           </select>
         </div>
       </div>
@@ -114,6 +143,12 @@ export default function Clinic({
           {clinic ? liveAvailability(clinic) : "Unknown"} · Demo
         </Badge>
       </div>
+      {clinic?.fictional && (
+        <ActivityPanel
+          clinicId={clinicId}
+          configure={() => setTab("Availability & services")}
+        />
+      )}
       <div className="metrics">
         {[
           {
@@ -135,9 +170,9 @@ export default function Clinic({
             Icon: Stethoscope,
           },
           {
-            label: "Active patients",
+            label: "Arrived workload",
             value: active.length,
-            caption: "Across the current patient board",
+            caption: "Arrived or in care · excludes inquiries",
             Icon: Users,
           },
         ].map((x) => (
@@ -179,6 +214,11 @@ export default function Clinic({
       </div>
       {feedback && <Notice>{feedback}</Notice>}
       {error && <Notice error>{error}</Notice>}
+      {loadError && (
+        <Notice error>
+          {loadError} <button onClick={refresh}>Try again</button>
+        </Notice>
+      )}
       {tab === "Patients" && (
         <section className="panel">
           <div className="panel-heading">
@@ -208,12 +248,41 @@ export default function Clinic({
               </select>
             </div>
           </div>
+          <div className="queue-tabs" aria-label="Patient queues">
+            {["Incoming inquiries", "At clinic", "Completed"].map((q) => (
+              <button
+                key={q}
+                aria-pressed={queue === q}
+                className={queue === q ? "active" : ""}
+                onClick={() => {
+                  setQueue(q);
+                  setStage("All stages");
+                }}
+              >
+                {q} (
+                {
+                  intakes.filter((i) =>
+                    q === "Incoming inquiries"
+                      ? ["New", "Reviewing", "Expected"].includes(i.stage)
+                      : q === "At clinic"
+                        ? ["Arrived", "In care"].includes(i.stage)
+                        : ["Discharged", "Transferred"].includes(i.stage),
+                  ).length
+                }
+                )
+              </button>
+            ))}
+          </div>
           {loading ? (
             <Loading />
-          ) : intakes.length === 0 ? (
+          ) : visibleIntakes.length === 0 ? (
             <Empty
-              title="Ready for the next arrival"
-              body="Send a demo intake from the owner view to see it arrive here automatically."
+              title={
+                queue === "Incoming inquiries"
+                  ? "No incoming inquiries"
+                  : "No patients in this view"
+              }
+              body="New owner inquiries appear here automatically. Check another queue or clear your search to see other patients."
             />
           ) : (
             <div className="table-wrap">
@@ -229,61 +298,55 @@ export default function Clinic({
                   </tr>
                 </thead>
                 <tbody>
-                  {intakes
-                    .filter(
-                      (i) =>
-                        (stage === "All stages" || i.stage === stage) &&
-                        (i.pet_name + " " + i.owner_name + " " + i.concern)
-                          .toLowerCase()
-                          .includes(search.toLowerCase()),
-                    )
-                    .map((i) => (
-                      <tr key={i.id}>
-                        <td>
-                          <strong>
-                            {i.pet_name}{" "}
-                            <span className="tiny">· {i.species}</span>
-                          </strong>
-                          <small>{i.owner_name}</small>
-                        </td>
-                        <td style={{ maxWidth: 240 }}>
-                          <span>
-                            {i.concern.length > 75
-                              ? i.concern.slice(0, 75) + "…"
-                              : i.concern}
+                  {visibleIntakes.map((i) => (
+                    <tr key={i.id}>
+                      <td>
+                        <strong>
+                          {i.pet_name}{" "}
+                          <span className="tiny">
+                            · {speciesLabel(i.species, i.species_subtype)}
                           </span>
-                        </td>
-                        <td>
-                          <Badge
-                            tone={
-                              i.urgency === "Critical"
-                                ? "red"
-                                : i.urgency === "Urgent"
-                                  ? "amber"
-                                  : "gray"
-                            }
-                          >
-                            {i.urgency}
-                          </Badge>
-                        </td>
-                        <td>
-                          <Badge tone={i.stage === "New" ? "blue" : "teal"}>
-                            {i.stage}
-                          </Badge>
-                        </td>
-                        <td>
-                          <small>{time(i.created_at)}</small>
-                        </td>
-                        <td>
-                          <button
-                            className="table-button"
-                            onClick={() => setSelected(i)}
-                          >
-                            Review <ArrowRight size={14} />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                        </strong>
+                        <small>{i.owner_name}</small>
+                      </td>
+                      <td style={{ maxWidth: 240 }}>
+                        <span>
+                          {i.concern.length > 75
+                            ? i.concern.slice(0, 75) + "…"
+                            : i.concern}
+                        </span>
+                      </td>
+                      <td>
+                        <Badge
+                          tone={
+                            i.urgency === "Critical"
+                              ? "red"
+                              : i.urgency === "Urgent"
+                                ? "amber"
+                                : "gray"
+                          }
+                        >
+                          {i.urgency}
+                        </Badge>
+                      </td>
+                      <td>
+                        <Badge tone={i.stage === "New" ? "blue" : "teal"}>
+                          {i.stage}
+                        </Badge>
+                      </td>
+                      <td>
+                        <small>{time(i.created_at)}</small>
+                      </td>
+                      <td>
+                        <button
+                          className="table-button"
+                          onClick={() => setSelected(i)}
+                        >
+                          Review <ArrowRight size={14} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -356,7 +419,10 @@ export default function Clinic({
           initial={selected}
           providers={providers}
           close={() => setSelected(null)}
-          refreshBoard={refresh}
+          refreshBoard={() => {
+            refresh();
+            refreshProviders();
+          }}
         />
       )}
     </main>
@@ -374,62 +440,67 @@ function ClinicSettings({
   const [availability, setAvailability] = useState(clinic.availability);
   const [services, setServices] = useState(clinic.services);
   const [species, setSpecies] = useState(clinic.species);
+  const [subtypes, setSubtypes] = useState(clinic.species_subtypes || []);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   return (
     <div className="section-grid">
-      <section className="panel">
-        <h2>Let owners know where you stand</h2>
-        <p className="muted">
-          Update your intake capacity in a few seconds. Statuses become unknown
-          after 60 minutes.
-        </p>
-        <div className="status-selector">
-          {["Accepting", "Limited", "At capacity", "Unknown"].map((x) => (
-            <button
-              key={x}
-              className={availability === x ? "active" : ""}
-              onClick={() => setAvailability(x)}
-            >
-              {x}
-            </button>
-          ))}
-        </div>
-        <p className="tiny">
-          Last availability update: {time(clinic.availability_at)}. All demo
-          availability is simulated.
-        </p>
-        <button
-          className="primary"
-          disabled={busy}
-          onClick={async () => {
-            setBusy(true);
-            try {
-              await api("providers/" + clinic.id, "PATCH", {
-                version: clinic.version,
-                availability,
-              });
-              refresh();
-              feedback(
-                "Availability saved. Owner discovery will update automatically.",
-              );
-            } catch (e) {
-              setError((e as Error).message);
-            } finally {
-              setBusy(false);
-            }
-          }}
-        >
-          <Check size={15} /> Publish demo availability
-        </button>
-        {error && <Notice error>{error}</Notice>}
-        <div className="divider" />
-        <h3>A useful call starts with the facts</h3>
-        <p className="muted" style={{ fontSize: 12 }}>
-          Owners see live status alongside its timestamp. An “Accepting” status
-          never guarantees acceptance, an appointment, or a wait time.
-        </p>
-      </section>
+      {clinic.fictional ? (
+        <ActivityPanel clinicId={clinic.id} editable />
+      ) : (
+        <section className="panel">
+          <h2>Let owners know where you stand</h2>
+          <p className="muted">
+            Update your intake capacity in a few seconds. Statuses become
+            unknown after 60 minutes.
+          </p>
+          <div className="status-selector">
+            {["Accepting", "Limited", "At capacity", "Unknown"].map((x) => (
+              <button
+                key={x}
+                className={availability === x ? "active" : ""}
+                onClick={() => setAvailability(x)}
+              >
+                {x}
+              </button>
+            ))}
+          </div>
+          <p className="tiny">
+            Last availability update: {time(clinic.availability_at)}. All demo
+            availability is simulated.
+          </p>
+          <button
+            className="primary"
+            disabled={busy}
+            onClick={async () => {
+              setBusy(true);
+              try {
+                await api("providers/" + clinic.id, "PATCH", {
+                  version: clinic.version,
+                  availability,
+                });
+                refresh();
+                feedback(
+                  "Availability saved. Owner discovery will update automatically.",
+                );
+              } catch (e) {
+                setError((e as Error).message);
+              } finally {
+                setBusy(false);
+              }
+            }}
+          >
+            <Check size={15} /> Publish demo availability
+          </button>
+          {error && <Notice error>{error}</Notice>}
+          <div className="divider" />
+          <h3>A useful call starts with the facts</h3>
+          <p className="muted" style={{ fontSize: 12 }}>
+            Owners see live status alongside its timestamp. An “Accepting”
+            status never guarantees acceptance, an appointment, or a wait time.
+          </p>
+        </section>
+      )}
       <section className="panel">
         <h2>Species & capabilities</h2>
         <form
@@ -441,6 +512,7 @@ function ClinicSettings({
                 version: clinic.version,
                 services,
                 species,
+                species_subtypes: subtypes,
               });
               refresh();
               feedback(
@@ -455,10 +527,32 @@ function ClinicSettings({
         >
           <p className="tiny">Species accepted</p>
           <Checkboxes
-            choices={["Dog", "Cat", "Rabbit", "Bird", "Reptile"]}
+            choices={[...speciesGroups]}
             values={species}
             set={setSpecies}
           />
+          {species.includes("Exotics") && (
+            <>
+              <p className="tiny">
+                Confirmed exotic types (empty means unconfirmed)
+              </p>
+              <Checkboxes
+                choices={exoticTypes}
+                values={subtypes}
+                set={setSubtypes}
+              />
+            </>
+          )}
+          {species.includes("Farm animals") && (
+            <>
+              <p className="tiny">Confirmed farm animal types</p>
+              <Checkboxes
+                choices={farmTypes}
+                values={subtypes}
+                set={setSubtypes}
+              />
+            </>
+          )}
           <p className="tiny" style={{ marginTop: 25 }}>
             Listed capabilities
           </p>
@@ -597,6 +691,13 @@ function Coverage({ clinicId }: { clinicId: string }) {
           <Field label="Role">
             <input name="role" required placeholder="Veterinary technician" />
           </Field>
+          <Field label="Capacity role">
+            <select name="role_type">
+              <option value="nonclinical">Nonclinical (does not count)</option>
+              <option value="doctor">Doctor</option>
+              <option value="clinical_support">Clinical support</option>
+            </select>
+          </Field>
           <Field label="Shift hours">
             <input name="shift" required placeholder="9:00 AM – 5:00 PM" />
           </Field>
@@ -623,28 +724,42 @@ function PatientDetail({
   const [stage, setStage] = useState(initial.stage);
   const [urgency, setUrgency] = useState(initial.urgency);
   const [note, setNote] = useState("");
+  const [workload, setWorkload] = useState(initial.workload || "Standard");
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [feedback, setFeedback] = useState("");
   const [handoff, setHandoff] = useState(false);
   const [version, setVersion] = useState(initial.version);
-  async function save() {
+  async function save(nextStage = stage) {
+    setSaving(true);
     try {
       const result = await api("intakes/" + initial.id, "PATCH", {
         version,
-        stage,
+        stage: nextStage,
         urgency,
+        workload,
       });
       setVersion(result.version);
+      setStage(result.stage);
       refresh();
       refreshBoard();
       setFeedback("Clinical assessment and stage saved.");
       setError("");
     } catch (e) {
       setError((e as Error).message);
+    } finally {
+      setSaving(false);
     }
   }
+  const next: Record<string, [string, string]> = {
+    New: ["Reviewing", "Acknowledge inquiry"],
+    Reviewing: ["Arrived", "Record arrival"],
+    Expected: ["Arrived", "Record arrival"],
+    Arrived: ["In care", "Record clinical review & start care"],
+    "In care": ["Discharged", "Complete visit"],
+  };
   return (
-    <Modal title="Patient intake" close={close} wide>
+    <Modal title="Patient inquiry & care" close={close} wide>
       <div className="patient-head">
         <div className="pet-avatar">
           <PawPrint size={25} />
@@ -652,7 +767,8 @@ function PatientDetail({
         <div>
           <h3>{data.pet_name}</h3>
           <p>
-            {data.species} · {data.owner_name} · {data.contact}
+            {speciesLabel(data.species, data.species_subtype)} ·{" "}
+            {data.owner_name} · {data.contact}
           </p>
         </div>
         <Badge tone="teal">{data.stage}</Badge>
@@ -666,6 +782,7 @@ function PatientDetail({
               setVersion(data.version);
               setStage(data.stage);
               setUrgency(data.urgency);
+              setWorkload(data.workload);
               setError("");
             }}
           >
@@ -674,10 +791,43 @@ function PatientDetail({
         </Notice>
       )}
       {feedback && <Notice>{feedback}</Notice>}
+      <div className="next-step">
+        <div>
+          <strong>
+            {data.stage === "Discharged"
+              ? "Visit complete"
+              : next[data.stage]?.[1]}
+          </strong>
+          <p>
+            {["New", "Reviewing", "Expected"].includes(data.stage)
+              ? "This is an incoming inquiry. No activity points are added until staff record arrival."
+              : "Workload points count until this visit is completed."}
+          </p>
+        </div>
+        {next[data.stage] && (
+          <button
+            className="primary"
+            disabled={saving}
+            onClick={() => save(next[data.stage][0])}
+          >
+            {saving ? "Saving…" : next[data.stage][1]}
+          </button>
+        )}
+      </div>
       <div className="patient-detail-layout">
         <div>
           <section className="panel">
-            <h3>Presenting concern</h3>
+            <h3>Receiving clinic summary</h3>
+            <p>
+              {data.receiving_summary || "Review the owner’s report below."}
+            </p>
+            <p className="tiny">
+              Structured from owner-provided facts · not a diagnosis.{" "}
+              {data.summary_mode === "ai"
+                ? "AI-organized requirements."
+                : "Prepared from the original owner report; no clinical decision is automated."}
+            </p>
+            <h3>Original owner report</h3>
             <p>{data.concern}</p>
             <p className="tiny">
               Duration: {data.duration || "Not provided"}
@@ -696,6 +846,16 @@ function PatientDetail({
                   ))}
                 </select>
               </Field>
+              <Field label="Workload assignment">
+                <select
+                  value={workload}
+                  onChange={(e) => setWorkload(e.target.value)}
+                >
+                  <option value="Light">Light · 1 point</option>
+                  <option value="Standard">Standard · 2 points</option>
+                  <option value="Intensive">Intensive · 4 points</option>
+                </select>
+              </Field>
               <Field label="Patient stage">
                 <select
                   value={stage}
@@ -709,7 +869,11 @@ function PatientDetail({
                 </select>
               </Field>
             </div>
-            <button className="primary full" onClick={save}>
+            <button
+              className="secondary full"
+              disabled={saving}
+              onClick={() => save()}
+            >
               Save assessment & stage <Check size={15} />
             </button>
             <small>

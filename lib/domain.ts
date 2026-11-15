@@ -1,3 +1,4 @@
+import { speciesMatch, speciesLabel } from "./species";
 import { locate, locationInText } from "./locations";
 export { locate, places } from "./locations";
 export type Provider = {
@@ -14,6 +15,17 @@ export type Provider = {
   lat: number | null;
   lng: number | null;
   species: string[];
+  species_subtypes?: string[];
+  fictional?: boolean;
+  activity?: {
+    tone: string;
+    label: string;
+    updated_at: string | null;
+    acceptance: string;
+    accepting: boolean;
+    fresh: boolean;
+    overridden: boolean;
+  } | null;
   services: string[];
   hours: string;
   scope: string;
@@ -35,6 +47,7 @@ export type Provider = {
 };
 export type Filters = {
   species: string;
+  subtype?: string;
   service: string;
   location: string;
   radius: number;
@@ -50,6 +63,12 @@ export function distance(a: number, b: number, c: number, d: number) {
   return 3958.8 * 2 * Math.atan2(Math.sqrt(v), Math.sqrt(1 - v));
 }
 export function liveAvailability(p: Provider) {
+  if (p.activity)
+    return !p.activity.accepting
+      ? "Not accepting today"
+      : !p.activity.fresh
+        ? "Unknown"
+        : "Accepting";
   return p.availability_at &&
     Date.now() - new Date(p.availability_at).getTime() < 60 * 60 * 1000
     ? p.availability
@@ -61,17 +80,47 @@ export function interpret(text: string) {
     /breath|seizur|collaps|unconscious|poison|toxin|hit by|severe bleed|can't (pee|urinate)|cannot (pee|urinate)|chocolate|not breathing/.test(
       s,
     );
-  const species = /cat|kitten/.test(s)
-    ? "Cat"
-    : /rabbit|bunny/.test(s)
-      ? "Rabbit"
-      : /bird|parrot/.test(s)
-        ? "Bird"
-        : /reptile|snake|lizard/.test(s)
-          ? "Reptile"
-          : /dog|puppy/.test(s)
-            ? "Dog"
-            : undefined;
+  let species: string | undefined;
+  let subtype: string | undefined;
+  if (/\b(cat|kitten|feline)\b/.test(s)) species = "Cat";
+  else if (/\b(dog|puppy|canine|pup)\b/.test(s)) species = "Dog";
+  else if (/\b(rabbit|bunny)\b/.test(s)) {
+    species = "Exotics";
+    subtype = "Rabbit";
+  } else if (/\b(parrot|bird|cockatiel|budgie)\b/.test(s)) {
+    species = "Exotics";
+    subtype = "Bird";
+  } else if (
+    /\b(reptile|snake|lizard|gecko|tortoise|turtle|bearded dragon)\b/.test(s)
+  ) {
+    species = "Exotics";
+    subtype = "Reptile";
+  } else if (/\b(guinea pig|hamster|ferret|gerbil|chinchilla)\b/.test(s)) {
+    species = "Exotics";
+    subtype = "Small mammal";
+  } else if (
+    /\b(horse|pony|cattle|cow|goat|sheep|pig|chicken|hen|duck|poultry)\b/.test(
+      s,
+    )
+  ) {
+    species = "Farm animals";
+    subtype = /horse|pony/.test(s)
+      ? "Horse"
+      : /cattle|cow/.test(s)
+        ? "Cattle"
+        : /goat/.test(s)
+          ? "Goat"
+          : /sheep/.test(s)
+            ? "Sheep"
+            : /pig/.test(s)
+              ? "Pig"
+              : "Poultry";
+  } else if (/\b(exotic|exotics)\b/.test(s)) species = "Exotics";
+  else if (/\b(farm|livestock)\b/.test(s)) species = "Farm animals";
+  else if (/\b(fish|hedgehog|axolotl|other species)\b/.test(s)) {
+    species = "Other species";
+    subtype = s.match(/fish|hedgehog|axolotl/)?.[0];
+  }
   const service = emergency
     ? "Emergency"
     : /neuro|spinal/.test(s)
@@ -84,7 +133,7 @@ export function interpret(text: string) {
             ? "Urgent care"
             : undefined;
   const location = locationInText(text);
-  return { emergency, species, service, location };
+  return { emergency, species, subtype, service, location };
 }
 export function matchProviders(
   providers: Provider[],
@@ -104,8 +153,10 @@ export function matchProviders(
           ? distance(coords[0], coords[1], p.lat, p.lng)
           : undefined,
       reasons: [
-        p.species.includes(f.species)
-          ? `${f.species} care listed`
+        speciesMatch(p, f.species, f.subtype) === "confirmed"
+          ? f.species === "Any pet"
+            ? "Choose a species to check eligibility"
+            : `${speciesLabel(f.species, f.subtype)} care listed`
           : "Species acceptance needs confirmation",
         p.services.includes(f.service)
           ? `${f.service} listed`
@@ -113,7 +164,8 @@ export function matchProviders(
       ],
     }))
     .filter((p) => {
-      if (emergency && p.category !== "Emergency") return false;
+      if (emergency && (p.category !== "Emergency" || p.fictional))
+        return false;
       if (
         !emergency &&
         f.service !== "Any care" &&
@@ -121,12 +173,7 @@ export function matchProviders(
         p.category !== f.service
       )
         return false;
-      if (
-        f.species !== "Any pet" &&
-        p.species.length &&
-        !p.species.includes(f.species)
-      )
-        return false;
+      if (speciesMatch(p, f.species, f.subtype) === "mismatch") return false;
       if (coords && p.distance === undefined) return false;
       if (!emergency && p.distance !== undefined && p.distance > f.radius)
         return false;

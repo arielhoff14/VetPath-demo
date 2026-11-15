@@ -45,6 +45,7 @@ test("owner edits, clinic capability edits, new hospitals and validation stay co
   const sage = (await (await clinic.request.get("/api/providers")).json()).find(
     (p: any) => p.id === "sage-sf",
   );
+  await cp.getByLabel("Exotics", { exact: true }).check();
   await cp.getByLabel("Rabbit", { exact: true }).check();
   await cp.getByRole("button", { name: "Save species & services" }).click();
   await expect
@@ -53,7 +54,7 @@ test("owner edits, clinic capability edits, new hospitals and validation stay co
         (p: any) => p.id === "sage-sf",
       ).species;
     })
-    .toContain("Rabbit");
+    .toContain("Exotics");
   const latest = (
     await (await admin.request.get("/api/providers")).json()
   ).find((p: any) => p.id === "sage-sf");
@@ -61,6 +62,7 @@ test("owner edits, clinic capability edits, new hospitals and validation stay co
     data: {
       version: latest.version,
       species: sage.species,
+      species_subtypes: sage.species_subtypes,
       services: sage.services,
     },
   });

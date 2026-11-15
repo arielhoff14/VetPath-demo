@@ -38,3 +38,35 @@ CREATE TABLE IF NOT EXISTS directory_sources (
 );
 CREATE TABLE IF NOT EXISTS data_migrations (id text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now());
 CREATE INDEX IF NOT EXISTS provider_postal_idx ON providers(postal_code);
+
+-- Connected workflow v2. Operational resources and public facts are independent.
+ALTER TABLE providers ADD COLUMN IF NOT EXISTS fictional boolean NOT NULL DEFAULT false;
+ALTER TABLE providers ADD COLUMN IF NOT EXISTS species_subtypes text[] NOT NULL DEFAULT '{}';
+ALTER TABLE intakes ADD COLUMN IF NOT EXISTS species_subtype text NOT NULL DEFAULT '';
+ALTER TABLE intakes ADD COLUMN IF NOT EXISTS workload text NOT NULL DEFAULT 'Standard' CHECK(workload IN ('Light','Standard','Intensive'));
+ALTER TABLE intakes ADD COLUMN IF NOT EXISTS submission_key text;
+ALTER TABLE intakes ADD COLUMN IF NOT EXISTS payload_hash text;
+ALTER TABLE intakes ADD COLUMN IF NOT EXISTS requested_service text NOT NULL DEFAULT 'Any care';
+ALTER TABLE intakes ADD COLUMN IF NOT EXISTS receiving_summary text NOT NULL DEFAULT '';
+ALTER TABLE intakes ADD COLUMN IF NOT EXISTS summary_mode text NOT NULL DEFAULT 'structured';
+ALTER TABLE intakes ADD COLUMN IF NOT EXISTS clinical_reviewed_at timestamptz;
+ALTER TABLE intakes ADD COLUMN IF NOT EXISTS arrived_at timestamptz;
+ALTER TABLE intakes ADD COLUMN IF NOT EXISTS completed_at timestamptz;
+ALTER TABLE intakes ADD COLUMN IF NOT EXISTS archived_at timestamptz;
+ALTER TABLE intakes ADD COLUMN IF NOT EXISTS demo_seed boolean NOT NULL DEFAULT false;
+CREATE UNIQUE INDEX IF NOT EXISTS intake_submission_key_idx ON intakes(owner_session,submission_key) WHERE submission_key IS NOT NULL;
+ALTER TABLE coverage ADD COLUMN IF NOT EXISTS role_type text NOT NULL DEFAULT 'nonclinical' CHECK(role_type IN ('doctor','clinical_support','nonclinical'));
+CREATE TABLE IF NOT EXISTS clinic_operations (
+ provider_id text PRIMARY KEY REFERENCES providers(id), rooms integer NOT NULL CHECK(rooms BETWEEN 0 AND 100),
+ verified_at timestamptz, updated_at timestamptz NOT NULL DEFAULT now(), closed_on text,
+ override_tone text CHECK(override_tone IN ('green','yellow','red')), override_reason text,
+ override_until timestamptz, version integer NOT NULL DEFAULT 1
+);
+CREATE TABLE IF NOT EXISTS demo_resets (request_key uuid PRIMARY KEY, created_at timestamptz NOT NULL DEFAULT now());
+CREATE OR REPLACE VIEW clinic_activity_inputs AS
+SELECT o.*,
+ (SELECT count(*)::int FROM coverage c WHERE c.provider_id=o.provider_id AND c.on_duty AND c.role_type='doctor') AS doctors,
+ (SELECT count(*)::int FROM coverage c WHERE c.provider_id=o.provider_id AND c.on_duty AND c.role_type='clinical_support') AS support,
+ COALESCE((SELECT sum(CASE i.workload WHEN 'Light' THEN 1 WHEN 'Intensive' THEN 4 ELSE 2 END)::int FROM intakes i WHERE i.provider_id=o.provider_id AND i.stage IN ('Arrived','In care') AND i.archived_at IS NULL),0) AS workload,
+ GREATEST(o.updated_at,(SELECT max(i.updated_at) FROM intakes i WHERE i.provider_id=o.provider_id AND i.archived_at IS NULL)) AS activity_updated_at
+FROM clinic_operations o;

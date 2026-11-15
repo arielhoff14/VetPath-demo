@@ -4,7 +4,7 @@ A veterinary care marketplace demo built from scratch with **Next.js 16, TypeScr
 
 **Public demo:** https://vetpath-web-production.up.railway.app
 
-**55-second verification video:** [Watch or download the recording](https://github.com/arielhoff14/VetPath-demo/releases/tag/demo-verification-v0.1). It shows the actual public deployment with independent owner and clinic sessions.
+**Connected walkthrough and reset guide:** [docs/CONNECTED-DEMO.md](docs/CONNECTED-DEMO.md). Verified videos are published as [GitHub release assets](https://github.com/arielhoff14/VetPath-demo/releases).
 
 The deployed app uses Next.js and a private PostgreSQL service on Railway. Use fictional data; clinic roles, partnerships, and intake availability are simulated.
 
@@ -24,7 +24,7 @@ npm run db:setup
 npm run dev
 ```
 
-Open <http://localhost:3000>. The seed is idempotent and runs only when the provider directory is empty. PostgreSQL data persists in a Docker volume. `DATABASE_URL` can point to an existing database instead.
+Open <http://localhost:3000>. The initial seed is idempotent; versioned, additive migrations also initialize new features on existing databases. PostgreSQL data persists in a Docker volume. `DATABASE_URL` can point to an existing database instead.
 
 For the complete production-mode container stack, put `SESSION_SECRET=<random value>` and optionally `POSTGRES_PASSWORD=<random value>` in an untracked `.env`, then run:
 
@@ -36,13 +36,13 @@ The app runs the schema/seed on startup, waits for database health, and serves o
 
 ## Try the connected demo
 
-1. **Find care:** describe a fictional pet’s problem. Edit species, care type, location, and radius. Compare up to three clinics. Call links use `tel:` and directions open Google Maps.
-2. **Send an intake:** choose SAGE’s simulated partnership, enter fictional information, and submit. Use “View your care requests” for edits and in-app messages.
-3. **Clinic workspace:** use a **different browser profile/incognito session**. Choose SAGE, review the new intake, record an assessment, add a private note, and move it through Reviewing → Expected/Arrived → In care → Discharged. Messages are visible to the owner; clinical notes are not.
-4. **Availability:** publish Limited or At capacity and watch the owner window update within four seconds. Status becomes Unknown after one hour. Update services/species and staff coverage.
-5. **Handoffs:** in Directory, enable a second demo partnership. Request a handoff from a patient. Switch to the receiving clinic and accept it. The intake moves to that clinic, and the owner retains access.
-6. **Directory:** edit a sourced hospital field, then import `data/hospitals.csv` or sync the linked Google Sheet. Review any protected-field conflicts. Keep the staff value or apply the spreadsheet value.
-7. **Insights:** see searches, categories, species, filter changes, comparisons, contact clicks, intakes, staff-confirmed arrivals, workload, and operational activity. Export the selected period as JSON.
+1. Use **Demo tools → Reset fictional clinic workflows** to restore the three practice clinics.
+2. In **Find care**, describe a fictional pet's problem, check the filters and provider facts, and send an inquiry to Harbor (Dog/Cat), Willow (Exotics), or Valley (Farm animals).
+3. Open **Clinic workspace** in a separate browser profile. Acknowledge the inquiry, record arrival, record a clinical assessment and workload, then complete the visit. Owner status and the automatic activity meter update from the same database.
+4. Use **Availability & services** for resources, acceptance, timed overrides and capabilities. **Team coverage** edits the same staffing records used by the calculation.
+5. **Demo tools** also opens **Directory & data** and **Platform insights**. Imports protect staff edits and surface conflicts; insights distinguish contact clicks from staff-confirmed arrivals.
+
+See the [step-by-step walkthrough, formula, reset behavior and limitations](docs/CONNECTED-DEMO.md).
 
 The role menu intentionally creates **demo** sessions; it is not production staff authentication. Separate sessions prevent switching roles from changing another window’s role. Staff sessions are restricted to their selected clinic. An owner can access only their own session’s requests. Demo owner identity expires after 24 hours.
 
@@ -50,7 +50,7 @@ The role menu intentionally creates **demo** sessions; it is not production staf
 
 - Original spreadsheet: [Veterinary Emergency-Care Interview Tracker](https://docs.google.com/spreadsheets/d/1Bm70UnTK56-J-U9bgxAUKzTwmA6JIlIn8DYnUudk_TE/edit?gid=440460470#gid=440460470).
 - Five interview rows become **four hospital records**; both MedVet interviews are retained.
-- Three additional San Francisco public listings produce **seven hospitals total**. See [source notes](docs/SOURCES.md).
+- Regional source tabs and public branch evidence produce **29 sourced providers**, plus **three explicitly fictional practice clinics**. See [source notes](docs/SOURCES.md).
 - All initial hospitals are nonpartners except SAGE’s **explicitly simulated** partnership. Fictional patients and staff are clearly labeled. No real clinic is contacted.
 - Unknown species, phone numbers, pricing, and intake status remain unknown. VEG Sacramento’s exact branch is unresolved and is not given fabricated contact details or a precise map pin.
 - Every listing includes its source, source-check date, and update time. Historical interview prices are qualified and never determine emergency ranking.
@@ -91,4 +91,4 @@ See [deployment instructions](docs/DEPLOYMENT.md) for Docker and Node hosting, e
 
 ### Regional directory and location search
 
-The default owner view lists all 29 sourced provider records. Enter a city, ZIP, ZIP+4, or use browser location to narrow by distance. San Jose searches include the nearby Campbell and Mountain View hospitals with their correct city labels. The bundled location index supports 569 ZIP codes across the nine Bay Area counties plus Sacramento. Google Sheets sync imports Interview Tracker, Pricing Comparison and Website Audit together. See [source details](docs/SOURCES.md) and [regression checks](docs/TESTING.md).
+The default owner view lists all 29 sourced provider records and the three labeled practice clinics. Enter a city, ZIP, ZIP+4, or use browser location to narrow by distance. San Jose searches include the nearby Campbell and Mountain View hospitals with their correct city labels. The bundled location index supports 569 ZIP codes across the nine Bay Area counties plus Sacramento. Google Sheets sync imports Interview Tracker, Pricing Comparison and Website Audit together. See [source details](docs/SOURCES.md) and [regression checks](docs/TESTING.md).

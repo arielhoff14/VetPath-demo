@@ -8,7 +8,8 @@ test("admin import deduplicates, preserves edits, resolves conflicts and updates
   const ap = await admin.newPage();
   const op = await owner.newPage();
   await ap.goto("/");
-  await ap.getByRole("button", { name: "Directory", exact: true }).click();
+  await ap.getByRole("button", { name: "Demo tools", exact: true }).click();
+  await ap.getByRole("button", { name: /Directory & data/ }).click();
   await op.goto("/");
   await expect(
     op.getByRole("button", {
@@ -67,7 +68,8 @@ test("admin import deduplicates, preserves edits, resolves conflicts and updates
     data: { version: latest.version, hours: "Unauthorized" },
   });
   expect(forbidden.status()).toBe(403);
-  await ap.getByRole("button", { name: "Insights", exact: true }).click();
+  await ap.getByRole("button", { name: "Demo tools", exact: true }).click();
+  await ap.getByRole("button", { name: /Platform insights/ }).click();
   await expect(
     ap.getByRole("heading", { name: "Understand the path to care." }),
   ).toBeVisible();

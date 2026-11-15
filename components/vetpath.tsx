@@ -22,9 +22,14 @@ export default function VetPath() {
   const [view, setView] = useState("owner");
   const [demoOpen, setDemoOpen] = useState(false);
   const [error, setError] = useState("");
-  const [clinicId, setClinicId] = useState("sage-sf");
+  const [clinicId, setClinicId] = useState("demo-harbor");
   const [sessionReady, setSessionReady] = useState(false);
-  const { data: providers, refresh } = useData<Provider[]>("providers", []);
+  const {
+    data: providers,
+    refresh,
+    loading: providersLoading,
+    error: providersError,
+  } = useData<Provider[]>("providers", []);
   useEffect(() => {
     api("session")
       .then(async (d) => {
@@ -81,8 +86,6 @@ export default function VetPath() {
           {[
             ["owner", "Find care"],
             ["clinic", "Clinic workspace"],
-            ["insights", "Insights"],
-            ["admin", "Directory"],
           ].map(([key, label]) => (
             <button
               key={key}
@@ -94,18 +97,28 @@ export default function VetPath() {
             </button>
           ))}
         </nav>
-        <button className="demo-toggle" onClick={() => setDemoOpen(true)}>
+        <button
+          className="demo-toggle"
+          onClick={() => setDemoOpen(true)}
+          aria-label="Demo tools"
+        >
           <span className="avatar">{view === "owner" ? "P" : "D"}</span>
           <span>{view === "owner" ? "Pet owner" : "Demo team"}</span>
           <ChevronDown size={15} />
         </button>
       </header>
+      {providersError && (
+        <Notice error>
+          We couldn’t load the directory.{" "}
+          <button onClick={refresh}>Try again</button>
+        </Notice>
+      )}
       {error && (
         <div className="page-error">
           <Notice error>{error}</Notice>
         </div>
       )}
-      {!sessionReady ? (
+      {!sessionReady || providersLoading ? (
         <div className="loading">Preparing your demo…</div>
       ) : view === "owner" ? (
         <Owner providers={providers} />
@@ -131,7 +144,7 @@ export default function VetPath() {
         </span>
       </footer>
       {demoOpen && (
-        <Modal title="Make yourself at home" close={() => setDemoOpen(false)}>
+        <Modal title="Demo tools" close={() => setDemoOpen(false)}>
           <p className="muted">
             Explore connected workflows with fictional patients. Clinic
             partnerships, staff, and live statuses are simulated.
@@ -180,6 +193,7 @@ export default function VetPath() {
               notified. Use fictional patient information.
             </span>
           </div>
+          <DemoReset onReset={refresh} />
           <p className="tiny">
             Pilot model: free clinic partnerships in San Francisco.
             Subscriptions are planned after demonstrated value; billing is not
@@ -188,5 +202,66 @@ export default function VetPath() {
         </Modal>
       )}
     </>
+  );
+}
+
+function DemoReset({ onReset }: { onReset: () => void }) {
+  const [confirm, setConfirm] = useState(false),
+    [busy, setBusy] = useState(false),
+    [result, setResult] = useState(""),
+    [error, setError] = useState("");
+  return (
+    <details className="demo-reset">
+      <summary>Reset fictional clinic workflows</summary>
+      <p>
+        Restores rooms, staff and baseline patients for Harbor, Willow and
+        Valley. Previous fictional cases are archived. Public hospital records
+        and source edits stay intact.
+      </p>
+      <label>
+        <input
+          type="checkbox"
+          checked={confirm}
+          onChange={(e) => setConfirm(e.target.checked)}
+        />{" "}
+        Reset the three fictional practice clinics
+      </label>
+      <button
+        className="secondary"
+        disabled={!confirm || busy}
+        onClick={async () => {
+          setBusy(true);
+          setError("");
+          try {
+            const previous = (await api("session")).session;
+            await api("session", "POST", { role: "admin" });
+            try {
+              await api("demo/reset", "POST", {
+                confirmation: "RESET FICTIONAL CLINICS",
+                requestKey: crypto.randomUUID(),
+              });
+            } finally {
+              await api("session", "POST", {
+                role: previous?.role || "owner",
+                clinicId: previous?.clinicId,
+              });
+            }
+            onReset();
+            setResult(
+              "Fictional clinics reset. Open Find care or Clinic workspace to continue.",
+            );
+            setConfirm(false);
+          } catch (e) {
+            setError((e as Error).message);
+          } finally {
+            setBusy(false);
+          }
+        }}
+      >
+        {busy ? "Resetting…" : "Reset fictional clinics"}
+      </button>
+      {result && <Notice>{result}</Notice>}
+      {error && <Notice error>{error}</Notice>}
+    </details>
   );
 }

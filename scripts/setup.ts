@@ -1,3 +1,4 @@
+import { seedFictionalClinics } from "../lib/demo";
 import { readFileSync } from "node:fs";
 import { pool } from "../lib/db";
 import {
@@ -148,6 +149,13 @@ async function main() {
       await c.query(
         "INSERT INTO data_migrations(id) VALUES('regional-directory-v1')",
       );
+    }
+    if (!(await c.query("SELECT id FROM data_migrations WHERE id='connected-workflows-v2'")).rowCount) {
+      await c.query(`UPDATE providers SET species_subtypes=ARRAY(SELECT s FROM unnest(species) s WHERE s IN ('Rabbit','Bird','Reptile')),species=ARRAY(SELECT DISTINCT CASE WHEN s IN ('Rabbit','Bird','Reptile') THEN 'Exotics' ELSE s END FROM unnest(species) s)`);
+      await c.query(`UPDATE intakes SET species_subtype=species,species='Exotics' WHERE species IN ('Rabbit','Bird','Reptile')`);
+      await c.query(`UPDATE coverage SET role_type=CASE WHEN role ILIKE '%veterinarian%' THEN 'doctor' WHEN role ILIKE '%technician%' THEN 'clinical_support' ELSE 'nonclinical' END`);
+      await seedFictionalClinics(c);
+      await c.query("INSERT INTO data_migrations(id) VALUES('connected-workflows-v2')");
     }
     await c.query("COMMIT");
     console.log("PostgreSQL schema and sourced demo data ready.");

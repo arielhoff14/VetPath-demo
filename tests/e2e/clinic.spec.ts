@@ -10,7 +10,7 @@ test("separate owner and clinic sessions share intakes, assessments, messages an
   const cp = await staff.newPage();
   await op.goto("/");
   await expect(
-    op.getByRole("button", { name: "Send intake", exact: true }),
+    op.getByRole("button", { name: "Send inquiry", exact: true }).first(),
   ).toBeVisible();
   const result = await owner.request.post("/api/intakes", {
     data: {
@@ -29,6 +29,7 @@ test("separate owner and clinic sessions share intakes, assessments, messages an
   await cp
     .getByRole("button", { name: "Clinic workspace", exact: true })
     .click();
+  await cp.getByLabel("Select clinic workspace").selectOption("sage-sf");
   const row = cp.getByRole("row").filter({ hasText: petName });
   await expect(row).toBeVisible();
   await row.getByRole("button", { name: "Review", exact: true }).click();
@@ -56,7 +57,9 @@ test("separate owner and clinic sessions share intakes, assessments, messages an
       const d = await (
         await owner.request.get("/api/intakes/" + intake.id)
       ).json();
-      return d.messages.length;
+      return d.messages.filter(
+        (m: any) => m.body === "Please call our care team before travelling.",
+      ).length;
     })
     .toBe(1);
   const ownerRecord = await (
@@ -78,27 +81,23 @@ test("separate owner and clinic sessions share intakes, assessments, messages an
   await cp.getByRole("button", { name: "Limited", exact: true }).click();
   await cp.getByRole("button", { name: "Publish demo availability" }).click();
   await expect(
-    op
-      .locator(".provider-card")
-      .filter({
-        has: op.getByRole("button", {
-          name: "SAGE Veterinary Centers",
-          exact: true,
-        }),
+    op.locator(".provider-card").filter({
+      has: op.getByRole("button", {
+        name: "SAGE Veterinary Centers",
+        exact: true,
       }),
+    }),
   ).toContainText("Limited");
   // Restore the baseline for the rest of the presentation.
   await cp.getByRole("button", { name: "Accepting", exact: true }).click();
   await cp.getByRole("button", { name: "Publish demo availability" }).click();
   await expect(
-    op
-      .locator(".provider-card")
-      .filter({
-        has: op.getByRole("button", {
-          name: "SAGE Veterinary Centers",
-          exact: true,
-        }),
+    op.locator(".provider-card").filter({
+      has: op.getByRole("button", {
+        name: "SAGE Veterinary Centers",
+        exact: true,
       }),
+    }),
   ).toContainText("Accepting patients");
   await cp.getByRole("tab", { name: "Team coverage" }).click();
   await cp.getByRole("button", { name: "Add team member" }).click();

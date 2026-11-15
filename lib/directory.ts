@@ -1,3 +1,4 @@
+import { providerSpecies } from "./species";
 import { createHash } from "node:crypto";
 import { parse } from "csv-parse/sync";
 import type { PoolClient } from "pg";
@@ -194,6 +195,7 @@ export async function importDirectory(
         ],
       );
     }
+    if (fields.species) Object.assign(fields, providerSpecies(fields.species as string[]));
     await applySourceFields(c, id, prev, fields);
     await c.query(
       `INSERT INTO directory_sources(source_key,provider_id,pricing_raw,audit_raw) VALUES($1,$2,$3,$4) ON CONFLICT(source_key) DO UPDATE SET pricing_raw=$3,audit_raw=COALESCE($4,directory_sources.audit_raw),imported_at=now()`,

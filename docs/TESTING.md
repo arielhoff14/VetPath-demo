@@ -1,3 +1,18 @@
+# Current connected-workflow verification
+
+November 15, 2026: production Next.js build against isolated PostgreSQL, using Chromium and separate browser contexts.
+
+- 15 unit tests: activity thresholds, limiting resources, missing/stale/zero capacity, override expiry, separate acceptance, species/subtypes, AI extraction validation/fallback, emergency priority, imports and regional location matching.
+- 10 Playwright scenarios: full owner-to-clinic lifecycle with direct PostgreSQL assertions; duplicate/concurrent submissions; resource and workload changes; stale data; species and acceptance restrictions; clinic isolation; owner edits; private notes and messages; handoffs; import deduplication/conflicts; address/ZIP synchronization; comparison, call/directions targets and mobile geolocation.
+- The connected lifecycle asserts **50% → 75% → 100% → 50%**, unique submission/arrival/completion events, four stored automatic owner messages, and saved arrival/review/completion timestamps after both browser sessions refresh.
+- TypeScript and production build pass. Live AI API calls are unconfigured; model response parsing and fallback are tested with mocks, not a paid live model.
+
+See [connected demonstration instructions](CONNECTED-DEMO.md). Public video and exact release/CI evidence are linked from the pull request and GitHub releases.
+
+The older verification history below describes earlier versions, not additional current test counts.
+
+---
+
 # Verification evidence
 
 Verified in the provided Cloud workspace on November 14, 2026 (Pacific time), using real PostgreSQL 17 and Chromium through Playwright.

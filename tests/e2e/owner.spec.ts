@@ -35,7 +35,20 @@ test("owner discovery, comparison, intake and privacy", async ({
       exact: true,
     }),
   ).toHaveAttribute("href", /https:\/\/www.google.com\/maps\/dir/);
-  await page.getByRole("button", { name: "Send intake", exact: true }).click();
+  await page
+    .locator(".provider-card")
+    .filter({
+      has: page.getByRole("button", {
+        name: "SAGE Veterinary Centers",
+        exact: true,
+      }),
+    })
+    .getByRole("button", { name: "Send inquiry", exact: true })
+    .click();
+  await page
+    .getByRole("dialog")
+    .getByLabel("Species", { exact: true })
+    .selectOption("Dog");
   await page.getByLabel("Your name").fill("Demo Owner");
   await page.getByLabel("Pet’s name").fill("Scout QA");
   await page
@@ -43,7 +56,7 @@ test("owner discovery, comparison, intake and privacy", async ({
     .fill("Mild limping since yesterday. Fictional demo.");
   await page.getByLabel("Demo email or phone").fill("owner@example.test");
   await page
-    .getByRole("button", { name: "Send demo intake", exact: true })
+    .getByRole("button", { name: "Send inquiry to clinic", exact: true })
     .click();
   await expect(page.getByRole("dialog")).toContainText("Scout QA");
   const own = await (await page.request.get("/api/intakes")).json();

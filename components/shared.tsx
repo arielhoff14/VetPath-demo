@@ -1,5 +1,11 @@
 "use client";
-import { useEffect, useState, cloneElement, isValidElement } from "react";
+import {
+  useEffect,
+  useState,
+  useRef,
+  cloneElement,
+  isValidElement,
+} from "react";
 import { X, CheckCircle2, AlertCircle, Loader2, PawPrint } from "lucide-react";
 export async function api(path: string, method = "GET", body?: unknown) {
   const r = await fetch("/api/" + path, {
@@ -10,26 +16,37 @@ export async function api(path: string, method = "GET", body?: unknown) {
   });
   const data = await r.json();
   if (!r.ok) throw new Error(data.error || "Something went wrong");
+  if (method !== "GET" && !["events", "session", "assistant"].includes(path))
+    window.dispatchEvent(new Event("vetpath-data-change"));
   return data;
 }
 export function useData<T>(path: string, initial: T, interval = 4000) {
   const [data, setData] = useState<T>(initial);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const requestSequence = useRef(0);
   async function refresh() {
+    const sequence = ++requestSequence.current;
     try {
-      setData(await api(path));
+      const latest = await api(path);
+      if (sequence !== requestSequence.current) return;
+      setData(latest);
       setError("");
     } catch (e) {
-      setError((e as Error).message);
+      if (sequence === requestSequence.current) setError((e as Error).message);
     } finally {
-      setLoading(false);
+      if (sequence === requestSequence.current) setLoading(false);
     }
   }
   useEffect(() => {
     refresh();
     const timer = setInterval(refresh, interval);
-    return () => clearInterval(timer);
+    window.addEventListener("vetpath-data-change", refresh);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener("vetpath-data-change", refresh);
+      requestSequence.current++;
+    };
   }, [path]);
   return { data, error, loading, refresh };
 }
@@ -56,12 +73,13 @@ export function sourceDate(value: string | null) {
 }
 export function Logo() {
   return (
-    <span className="logo">
-      <span className="logo-mark">
-        <PawPrint size={23} strokeWidth={2} />
-      </span>
-      vetpath<span className="logo-dot">.</span>
-    </span>
+    <img
+      className="brand-logo"
+      src="/vetpath-logo.png"
+      alt="VetPath"
+      width={180}
+      height={60}
+    />
   );
 }
 export function Modal({
@@ -75,9 +93,32 @@ export function Modal({
   close: () => void;
   wide?: boolean;
 }) {
+  const dialogRef = useRef<HTMLElement>(null);
+  const closeRef = useRef(close);
+  closeRef.current = close;
   useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null;
+    const nodes = () =>
+      Array.from(
+        dialogRef.current?.querySelectorAll<HTMLElement>(
+          'button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex="0"]',
+        ) || [],
+      ).filter((el) => el.getClientRects().length > 0);
+    nodes()[0]?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
+      if (e.key === "Escape") closeRef.current();
+      if (e.key === "Tab") {
+        const items = nodes(),
+          first = items[0],
+          last = items[items.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last?.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first?.focus();
+        }
+      }
     };
     document.addEventListener("keydown", onKey);
     const old = document.body.style.overflow;
@@ -85,8 +126,9 @@ export function Modal({
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = old;
+      previous?.focus();
     };
-  }, [close]);
+  }, []);
   return (
     <div
       className="modal-backdrop"
@@ -95,6 +137,7 @@ export function Modal({
       }}
     >
       <section
+        ref={dialogRef}
         className={"modal " + (wide ? "wide" : "")}
         role="dialog"
         aria-modal="true"
