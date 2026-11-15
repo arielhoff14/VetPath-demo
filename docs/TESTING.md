@@ -69,3 +69,8 @@ Public recording verification completed successfully: [workflow run](https://git
 - Browser tests cover the five expected San Jose-area hospitals; 18 city/ZIP pairs spanning all nine Bay Area counties; clearing location; ZIPs in chat; directory ZIP search; and address changes observed in a separate owner session.
 - A separate admin session reimports the directory twice to check deduplication and protected address conflicts, then applies the source address and verifies the ZIP and coordinates return together.
 - `Verify live regional searches` runs the non-destructive search regression against the public Railway deployment with normal HTTPS verification. It does not edit public provider addresses or reset public data.
+## Direct PostgreSQL walkthrough verification
+
+Local recording case `29c21907-58bd-4f6c-bd22-d85450b09bf3` (`Clover-20261115181736`) was queried directly after recording. Stored stage: Discharged; workload: Intensive; arrival, clinical review and completion timestamps: present; automatic owner messages: 4. Each of intake_submitted, inquiry_acknowledged, confirmed_arrival, workload_changed and visit_completed appears exactly once for this case.
+
+The final connected browser regression passed after improving immediate refresh notifications and rejecting out-of-order polling responses. The demo reset was also exercised through the UI: it restored 50% baseline activity and preserved the clinic session.
