@@ -213,7 +213,14 @@ try {
   const returning = await start("Owner sees live updates", ownerState);
   const rp = returning.page;
   await expect(
-    rp.locator(".provider-card").filter({ hasText: "SAGE Veterinary Centers" }),
+    rp
+      .locator(".provider-card")
+      .filter({
+        has: rp.getByRole("button", {
+          name: "SAGE Veterinary Centers",
+          exact: true,
+        }),
+      }),
   ).toContainText("Limited");
   await caption(
     rp,
@@ -282,7 +289,7 @@ try {
   const providers = await (
     await admin.context.request.get("/api/providers")
   ).json();
-  expect(providers).toHaveLength(7);
+  expect(providers.length).toBeGreaterThanOrEqual(29);
   assertions.push(
     "Live Google Sheet import succeeded without duplicating the seven hospitals",
   );

@@ -30,7 +30,10 @@ test("owner discovery, comparison, intake and privacy", async ({
     "tel:+14155660540",
   );
   await expect(
-    page.getByRole("link", { name: "Directions to SAGE Veterinary Centers" }),
+    page.getByRole("link", {
+      name: "Directions to SAGE Veterinary Centers",
+      exact: true,
+    }),
   ).toHaveAttribute("href", /https:\/\/www.google.com\/maps\/dir/);
   await page.getByRole("button", { name: "Send intake", exact: true }).click();
   await page.getByLabel("Your name").fill("Demo Owner");

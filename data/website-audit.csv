@@ -1,0 +1,224 @@
+"Hospital Website Audit","","","","","","","","","","","","","","","","",""
+"","Public-page audit only. Sources and caveats are recorded per row. No widget transactions or staff usage tested. Interview fees are not website evidence.","","","","","","","","","","","","","","","",""
+"","28 source rows; 27 assessed; 1 unresolved branch. 83 unique pages checked. 4/27 publish some clinical prices; 23/27 do not show clinical fees on checked pages. No live status found in 27/27 checked sets.","","","","","","","","","","","","","","","",""
+"Hospital / source-row label","Official website / location","Clinical pricing visibility","Price evidence / limits","Species eligibility clarity","Species evidence / limits","Treatments / services visibility","Services found","Live wait / activity visibility","Wait evidence / limits","Patient-facing tools observed","Infrastructure / code references","Information gaps to validate","Follow-up validation question","Pages checked / evidence URLs","Coverage and identity caveats","Checked on","Evidence scope"
+"Pacific Veterinary Emergency + Specialty Hospital","https://www.pacvetemergency.com/","Published exam fees","FAQ lists emergency exam $160, surgery consultation $200, internal medicine/oncology/neurology consultations $250. Diagnostic/treatment estimates are individualized.
+Source: https://www.pacvetemergency.com/faqs/","Partial / conditional scope","FAQ names pocket pets, birds and reptiles but requires calling to check the on-duty doctor. This is conditional capability, not guaranteed exotic intake.
+Source: https://www.pacvetemergency.com/faqs/","Listed","24/7 emergency; surgery, internal medicine, oncology; capabilities described.
+Source: https://www.pacvetemergency.com/","No live status found","FAQ describes nurse triage and stable pets waiting their turn; no current volume level or timestamped queue found.
+Source: https://www.pacvetemergency.com/faqs/","CareCredit","Google Tag Manager, WordPress","Live activity; doctor-specific species capability; diagnostic/treatment price ranges.","Would staff maintain a timestamped activity category, and who approves changes? Which species can this location treat, including on-call exceptions?","https://www.pacvetemergency.com/
+https://www.pacvetemergency.com/services/
+https://www.pacvetemergency.com/faqs/","Public HTML and linked pages only; no authenticated portals, form submissions, or interactive widget testing.","2026-11-14","3 page checks. Not found means not found on these pages, not confirmed absence. Website publication is not a current hospital quote."
+"Remedy Veterinary Specialists","https://www.remedyvets.com/","Published exam and procedure fees","Pricing page lists new neurology consultation $375; emergency neurology consultation $575; MRI $4,000; multiple procedure ranges and stated exclusions.
+Source: https://www.remedyvets.com/pricing","Dogs/cats explicitly described","Neurology page explicitly describes neurologists for dogs and cats; a complete exclusion list was not found.
+Source: https://www.remedyvets.com/neurology","Listed","Neurology, pain management, rehabilitation, acupuncture, MRI and imaging.
+Source: https://www.remedyvets.com/","No live status found","Weekday operating hours and on-call scope are described; no live wait/activity display found.
+Source: https://www.remedyvets.com/emergency","Otto / TeleVet, Trupanion","Google Tag Manager, Squarespace","Live activity or response-time signal; current specialty appointment capacity. Not a blanket price-transparency gap.","Pricing is already public: would a shared navigation layer add value beyond your current pricing page and Otto intake? What current specialty capacity can be safely shown?","https://www.remedyvets.com/
+https://www.remedyvets.com/pricing
+https://www.remedyvets.com/neurology
+https://www.remedyvets.com/emergency
+https://www.remedyvets.com/vet-referrals","Public HTML and linked pages only; no authenticated portals, form submissions, or interactive widget testing.","2026-11-14","5 page checks. Not found means not found on these pages, not confirmed absence. Website publication is not a current hospital quote."
+"Veterinary Emergency Group (Sacramento)","https://www.veg.com/locations/california","Not assessed","Specific hospital not identified. Interview fees are not website evidence.","Not assessed","Exact Sacramento-area VEG branch remains unconfirmed.","Not assessed","","Not assessed","No specific location assessed.","Not assessed","Not assessed","Confirm the interview branch first.","Which specific location employed Elizabeth Salomon, RVT, during the interview?","https://www.veg.com/locations/california","Excluded from the 27-assessed denominator.","","Unresolved location identity"
+"MedVet (Silicon Valley)","https://www.medvet.com/location/silicon-valley/","No clinical fees found","Financing and individualized estimate/deposit policy found. No local ER exam or treatment dollar fees found on checked pages.
+Source: https://www.medvet.com/location/silicon-valley/","Location scope unclear","National menu links to Avian & Exotics, but that page specifically describes MedVet Hilliard. It does not establish Silicon Valley exotic intake.
+Source: https://www.medvet.com/specialty/avian-exotics/?nav_context=for-pet-parents","Listed","Local page lists emergency, cardiology, critical care, internal medicine, oncology, neurology, radiology, surgery and urgent care.
+Source: https://www.medvet.com/location/silicon-valley/","No live status found","Group FAQ explains delays depend on more critically ill patients, without a local live status.
+Source: https://www.medvet.com/faqs/?nav_context=for-pet-parents","CareCredit, rVetLink","Google Tag Manager","Local exam/range pricing, explicit location-level species intake, live activity and specialty availability.","Would staff maintain a timestamped activity category, and who approves changes? Can an approved exam fee or typical range be shared publicly? Which species can this location treat, including on-call exceptions?","https://www.medvet.com/location/silicon-valley/
+https://www.medvet.com/specialty/?nav_context=for-pet-parents
+https://www.medvet.com/specialty/avian-exotics/?nav_context=for-pet-parents
+https://www.medvet.com/faqs/?nav_context=for-pet-parents
+https://www.medvet.com/referral-partner-portal/?nav_context=for-veterinarians","Public HTML and linked pages only; no authenticated portals, form submissions, or interactive widget testing. Group Avian & Exotics page specifically discusses Hilliard; do not infer local exotic care. rVetLink code is on a shared MedVet page.","2026-11-14","5 page checks. Not found means not found on these pages, not confirmed absence. Website publication is not a current hospital quote."
+"Veterinary Emergency Group (San Ramon)","https://www.veg.com/locations/california/san-ramon","No clinical fees found","Group pages discuss variable treatment costs and advance estimates; no local exam dollar fee found.
+Source: https://www.veg.com/locations/california/san-ramon","Broad species scope stated","Location page advertises care for cats, dogs, feathered pets and exotics. Exact species/doctor limitations still require confirmation.
+Source: https://www.veg.com/locations/california/san-ramon","Listed","Emergency, exotic care, urgent care, surgery, endoscopy, imaging/testing and hospitalization advertised.
+Source: https://www.veg.com/locations/california/san-ramon","No live status found","Immediate triage is advertised. This is not a current wait estimate or timestamped activity status.
+Source: https://www.veg.com/locations/california/san-ramon","CareCredit, Scratchpay","OneTrust, Wix","Published local fee/ranges; live activity; clear limits on specific species and advanced capabilities.","Would staff maintain a timestamped activity category, and who approves changes? Can an approved exam fee or typical range be shared publicly?","https://www.veg.com/locations/california/san-ramon
+https://www.veg.com/services
+https://www.veg.com/faqs","Public HTML and linked pages only; no authenticated portals, form submissions, or interactive widget testing.","2026-11-14","3 page checks. Not found means not found on these pages, not confirmed absence. Website publication is not a current hospital quote."
+"Veterinary Emergency Group (Larkspur)","https://www.veg.com/locations/california/larkspur","No clinical fees found","Variable costs and estimates described on group pages; no local exam dollar fee found.
+Source: https://www.veg.com/locations/california/larkspur","Broad species scope stated","Location page advertises exotic pets and FAQ names avians/reptiles; species-specific availability is not a live signal.
+Source: https://www.veg.com/locations/california/larkspur","Listed","Emergency, exotic care, urgent care, surgery, imaging, endoscopy and hospitalization.
+Source: https://www.veg.com/locations/california/larkspur","No live status found","Immediate triage claim and general process only; no live wait/activity display found.
+Source: https://www.veg.com/locations/california/larkspur","CareCredit, Scratchpay","OneTrust, Wix","Local fee/ranges, live activity, and species/capability qualifiers.","Would staff maintain a timestamped activity category, and who approves changes? Can an approved exam fee or typical range be shared publicly?","https://www.veg.com/locations/california/larkspur
+https://www.veg.com/services
+https://www.veg.com/faqs","Public HTML and linked pages only; no authenticated portals, form submissions, or interactive widget testing.","2026-11-14","3 page checks. Not found means not found on these pages, not confirmed absence. Website publication is not a current hospital quote."
+"MedVet (Mountain View)","https://www.medvet.com/location/mountain-view/","No clinical fees found","CareCredit and individualized estimates/deposit policy found; local clinical fees not found.
+Source: https://www.medvet.com/location/mountain-view/","Location scope unclear","National Avian & Exotics page describes Hilliard, not Mountain View. A local species intake list was not found.
+Source: https://www.medvet.com/specialty/avian-exotics/?nav_context=for-pet-parents","Listed","Local emergency and specialty department listings; group services are not proof of all local capabilities.
+Source: https://www.medvet.com/location/mountain-view/","No live status found","Group FAQ explains triage-related delays; no local live display.
+Source: https://www.medvet.com/faqs/?nav_context=for-pet-parents","CareCredit, rVetLink","Google Tag Manager","Local clinical fees, explicit species scope, live activity and specialty availability.","Would staff maintain a timestamped activity category, and who approves changes? Can an approved exam fee or typical range be shared publicly? Which species can this location treat, including on-call exceptions?","https://www.medvet.com/location/mountain-view/
+https://www.medvet.com/specialty/?nav_context=for-pet-parents
+https://www.medvet.com/specialty/avian-exotics/?nav_context=for-pet-parents
+https://www.medvet.com/faqs/?nav_context=for-pet-parents
+https://www.medvet.com/referral-partner-portal/?nav_context=for-veterinarians","Public HTML and linked pages only; no authenticated portals, form submissions, or interactive widget testing. Group Avian & Exotics page specifically discusses Hilliard; do not infer local exotic care. rVetLink code is on a shared MedVet page.","2026-11-14","5 page checks. Not found means not found on these pages, not confirmed absence. Website publication is not a current hospital quote."
+"Veterinary Emergency Group (San Jose)","https://www.veg.com/locations/california/san-jose","No clinical fees found","Group cost/estimate policy and financing found; local clinical dollar fees not found.
+Source: https://www.veg.com/locations/california/san-jose","Broad species scope stated","Local site advertises dogs, cats and exotic pet care; the FAQ names avians/reptiles.
+Source: https://www.veg.com/locations/california/san-jose","Listed","Emergency, urgent care, exotic pet care, surgery, diagnostics and hospitalization.
+Source: https://www.veg.com/locations/california/san-jose","No live status found","Immediate triage claim; no current waiting-room load or update timestamp found.
+Source: https://www.veg.com/locations/california/san-jose","CareCredit, Scratchpay","OneTrust, Wix","Local pricing, timestamped activity and detailed capability limits.","Would staff maintain a timestamped activity category, and who approves changes? Can an approved exam fee or typical range be shared publicly?","https://www.veg.com/locations/california/san-jose
+https://www.veg.com/services
+https://www.veg.com/faqs","Public HTML and linked pages only; no authenticated portals, form submissions, or interactive widget testing.","2026-11-14","3 page checks. Not found means not found on these pages, not confirmed absence. Website publication is not a current hospital quote."
+"Ocean Avenue Veterinary Group","https://oceanavevethosp.com/","Policy charges only","Cancellation/no-show charges ($35/$75) and a $200 deposit deduction are published. These are not exam/treatment prices. No exam fee found.
+Source: https://oceanavevethosp.com/","Dogs/cats explicitly described","Homepage describes a locally owned hospital for dogs and cats and dog/cat emergency treatment.
+Source: https://oceanavevethosp.com/","Listed","Emergency care, surgery, preventive care, dentistry and diagnostic services described.
+Source: https://oceanavevethosp.com/","No live status found","FAQ states non-emergency walk-ins may wait longer when urgent cases arrive. No live number or color status found.
+Source: https://oceanavevethosp.com/faqs/","CareCredit, Scratchpay, Trupanion, Weave","Google Tag Manager, WordPress","Exam/procedure estimates; live activity. Booking already exists, so validate how VetPath complements it.","Would staff maintain a timestamped activity category, and who approves changes? Can an approved exam fee or typical range be shared publicly?","https://oceanavevethosp.com/
+https://oceanavevethosp.com/services/
+https://oceanavevethosp.com/faqs/
+https://oceanavevethosp.com/pet-insurance/
+https://oceanavevethosp.com/payment-options/","Public HTML and linked pages only; no authenticated portals, form submissions, or interactive widget testing.","2026-11-14","5 page checks. Not found means not found on these pages, not confirmed absence. Website publication is not a current hospital quote."
+"MedVet (Campbell)","https://www.medvet.com/location/campbell/","No clinical fees found","Financing and individualized estimate/deposit policy found; no local exam fee or treatment range.
+Source: https://www.medvet.com/location/campbell/","Location scope unclear","National exotics page is about Hilliard. It should not be used to infer Campbell species intake.
+Source: https://www.medvet.com/specialty/avian-exotics/?nav_context=for-pet-parents","Listed","Emergency and local specialty listings present; group-wide menu is broader than local services.
+Source: https://www.medvet.com/location/campbell/","No live status found","Group FAQ explains triage delays; no local live wait/activity status found.
+Source: https://www.medvet.com/faqs/?nav_context=for-pet-parents","CareCredit, rVetLink","Google Tag Manager","Local fees, explicit species intake and current activity/specialist availability.","Would staff maintain a timestamped activity category, and who approves changes? Can an approved exam fee or typical range be shared publicly? Which species can this location treat, including on-call exceptions?","https://www.medvet.com/location/campbell/
+https://www.medvet.com/specialty/?nav_context=for-pet-parents
+https://www.medvet.com/specialty/avian-exotics/?nav_context=for-pet-parents
+https://www.medvet.com/faqs/?nav_context=for-pet-parents
+https://www.medvet.com/referral-partner-portal/?nav_context=for-veterinarians","Public HTML and linked pages only; no authenticated portals, form submissions, or interactive widget testing. Group Avian & Exotics page specifically discusses Hilliard; do not infer local exotic care. rVetLink code is on a shared MedVet page.","2026-11-14","5 page checks. Not found means not found on these pages, not confirmed absence. Website publication is not a current hospital quote."
+"Beacon Veterinary Specialists","https://beacon.vet/","No clinical fees found","Payment/financing options are published; no exam fee or clinical procedure range found.
+Source: https://beacon.vet/","Dogs/cats explicitly described","Emergency page explicitly describes treatment for dogs and cats. No exhaustive species eligibility list found.
+Source: https://beacon.vet/emergency/","Listed","Emergency and specialty services with emergency diagnostics and treatment descriptions.
+Source: https://beacon.vet/","No live status found","Emergency page says pets are seen by a triage team right away; no current wait/volume feed found.
+Source: https://beacon.vet/emergency/","CareCredit, Instinct, Scratchpay, Trupanion","Google Tag Manager, WordPress","Exam/range pricing and current activity; integration with existing referral workflow.","Would staff maintain a timestamped activity category, and who approves changes? Can an approved exam fee or typical range be shared publicly?","https://beacon.vet/
+https://beacon.vet/services/
+https://beacon.vet/emergency/
+https://beacon.vet/payment-options/
+https://beacon.vet/for-veterinarians/","Public HTML and linked pages only; no authenticated portals, form submissions, or interactive widget testing.","2026-11-14","5 page checks. Not found means not found on these pages, not confirmed absence. Website publication is not a current hospital quote."
+"Oakvet Animal Specialty Hospitals","https://www.oakvetash.com/","Published procedure ranges only","Dentistry page posts periodontal cleaning/extractions $2,500–$7,500, feline stomatitis extractions $5,000–$9,000, and root canal $3,500–$5,000. No ER exam price found.
+Source: https://www.oakvetash.com/dentistry/","Partial / context only","Dentistry page references feline procedures, but a complete hospital intake species list was not found.
+Source: https://www.oakvetash.com/dentistry/","Listed","Emergency/critical care, surgery, internal medicine, oncology and dentistry are listed.
+Source: https://www.oakvetash.com/","No live status found","ER page says an estimated wait is given but subject to change; it advises calling if an extended wait. No live display found.
+Source: https://www.oakvetash.com/emergency-care/","CareCredit, Covetrus, Scratchpay, Varidi","Google Tag Manager, WordPress","ER exam fee; complete species scope; live activity. Some procedure pricing already exists.","Would staff maintain a timestamped activity category, and who approves changes? Which species can this location treat, including on-call exceptions?","https://www.oakvetash.com/
+https://www.oakvetash.com/dentistry/
+https://www.oakvetash.com/emergency-care/","Public HTML and linked pages only; no authenticated portals, form submissions, or interactive widget testing.","2026-11-14","3 page checks. Not found means not found on these pages, not confirmed absence. Website publication is not a current hospital quote."
+"Omega Veterinary Specialists ","https://www.omegavetgroup.com/","No clinical fees found","CareCredit/Scratchpay options found; no clinical fee or procedure range found.
+Source: https://www.omegavetgroup.com/","Partial / context only","Service descriptions name dogs and cats for orthopedic/neurologic treatment; complete admission species limits not found.
+Source: https://www.omegavetgroup.com/services/","Listed","Emergency, advanced surgery, neurology/neurosurgery and other specialty descriptions.
+Source: https://www.omegavetgroup.com/","No live status found","Homepage claims shortest wait times in the Bay Area, but gives no current measurement, timestamp or comparison methodology.
+Source: https://www.omegavetgroup.com/","CareCredit, Jotform, Scratchpay, Vetsource","Google Tag Manager, WordPress","Measurable timestamped activity, clinical pricing and explicit species scope; validate marketing wait claim.","Would staff maintain a timestamped activity category, and who approves changes? Can an approved exam fee or typical range be shared publicly? Which species can this location treat, including on-call exceptions?","https://www.omegavetgroup.com/
+https://www.omegavetgroup.com/services/
+https://www.omegavetgroup.com/payment-options/
+https://www.omegavetgroup.com/referring-vets/","Public HTML and linked pages only; no authenticated portals, form submissions, or interactive widget testing. Sheet label matched to Omega Veterinary Group in San Mateo.","2026-11-14","5 page checks. Not found means not found on these pages, not confirmed absence. Website publication is not a current hospital quote."
+"Sage Veterinary Centers (San Francisco)","https://www.sagecenters.com/locations/san-francisco","No clinical fees found","Services and self-service workflows described, but clinical exam/procedure dollar fees not found.
+Source: https://www.sagecenters.com/locations/san-francisco","Dogs/cats explicitly described","San Francisco location page explicitly says specialty and emergency care for cats and dogs.
+Source: https://www.sagecenters.com/locations/san-francisco","Listed","Local emergency/critical care and specialist profiles, plus a broader group services list.
+Source: https://www.sagecenters.com/locations/san-francisco","No live status found","Shared services page mentions reducing waits through urgent care; no local real-time wait or activity feed.
+Source: https://www.sagecenters.com/services","Vetsource","Google Tag Manager","Local fees and live activity; avoid assuming group-wide services/pharmacy are local.","Would staff maintain a timestamped activity category, and who approves changes? Can an approved exam fee or typical range be shared publicly?","https://www.sagecenters.com/locations/san-francisco
+https://www.sagecenters.com/services
+https://www.sagecenters.com/for-vets/faqs
+https://www.sagecenters.com/self-service-portal
+https://www.sagecenters.com/online-pharmacy","Public HTML and linked pages only; no authenticated portals, form submissions, or interactive widget testing. Shared SAGE pharmacy page links a Campbell storefront; group pages do not prove local deployment.","2026-11-14","5 page checks. Not found means not found on these pages, not confirmed absence. Website publication is not a current hospital quote."
+"Sage Veterinary Centers (Concord)","https://www.sagecenters.com/locations/concord","No clinical fees found","No clinical exam/procedure fees found on checked location and shared pages.
+Source: https://www.sagecenters.com/locations/concord","Location scope unclear","The checked local page uses pets without an explicit complete species intake list. Group cat articles do not establish local scope.
+Source: https://www.sagecenters.com/locations/concord","Listed","Local departments include emergency, critical care, cardiology, internal medicine, neurology, oncology, ophthalmology, radiology and surgery.
+Source: https://www.sagecenters.com/locations/concord","No live status found","Group copy describes urgent care reducing waits, not a current local queue.
+Source: https://www.sagecenters.com/services","Vetsource","Google Tag Manager","Local fees, local species intake, real-time activity and availability of specialists.","Would staff maintain a timestamped activity category, and who approves changes? Can an approved exam fee or typical range be shared publicly? Which species can this location treat, including on-call exceptions?","https://www.sagecenters.com/locations/concord
+https://www.sagecenters.com/services
+https://www.sagecenters.com/for-vets/faqs
+https://www.sagecenters.com/self-service-portal
+https://www.sagecenters.com/online-pharmacy","Public HTML and linked pages only; no authenticated portals, form submissions, or interactive widget testing. Shared SAGE pharmacy page links a Campbell storefront; group pages do not prove local deployment.","2026-11-14","5 page checks. Not found means not found on these pages, not confirmed absence. Website publication is not a current hospital quote."
+"TruVet Specialty & Emergency Hospital","https://www.truvetspecialty.com/","No clinical fees found","Estimates after exam and CareCredit/Cherry/Scratchpay are described; no clinical fees found.
+Source: https://www.truvetspecialty.com/","Dogs/cats explicitly described","Homepage describes urgent, emergency and wellness care for dogs and cats.
+Source: https://www.truvetspecialty.com/","Listed","24/7 emergency, specialty, urgent and wellness care; imaging and endoscopy described.
+Source: https://www.truvetspecialty.com/","No live status found","FAQ explains triage and variable waits; no live timestamped hospital volume found.
+Source: https://www.truvetspecialty.com/faqs","CareCredit, Cherry, Instinct, Scratchpay, Trupanion","Google Tag Manager","Exam/range pricing and live activity; complement rather than duplicate existing appointment portals.","Would staff maintain a timestamped activity category, and who approves changes? Can an approved exam fee or typical range be shared publicly?","https://www.truvetspecialty.com/
+https://www.truvetspecialty.com/services
+https://www.truvetspecialty.com/faqs
+https://www.truvetspecialty.com/payment-options-pet-insurance
+https://www.truvetspecialty.com/er-and-specialty-services-pet-owner-portal
+https://www.truvetspecialty.com/wellness-and-urgent-care-pet-owner-portal
+https://www.truvetspecialty.com/forms/referring-veterinarian-form","Public HTML and linked pages only; no authenticated portals, form submissions, or interactive widget testing.","2026-11-14","7 page checks. Not found means not found on these pages, not confirmed absence. Website publication is not a current hospital quote."
+"Sage Veterinary Centers (Dublin)","https://www.sagecenters.com/locations/dublin","No clinical fees found","No local exam/procedure dollar fees found.
+Source: https://www.sagecenters.com/locations/dublin","Location scope unclear","Local page lacks explicit complete species intake; group articles are not local eligibility evidence.
+Source: https://www.sagecenters.com/locations/dublin","Listed","Local specialty and emergency offerings described; broad shared services pages need local confirmation.
+Source: https://www.sagecenters.com/locations/dublin","No live status found","Urgent-care wait reduction is described generically; no current local feed.
+Source: https://www.sagecenters.com/services","Vetsource","Google Tag Manager","Local fee/ranges, explicit species and timestamped activity.","Would staff maintain a timestamped activity category, and who approves changes? Can an approved exam fee or typical range be shared publicly? Which species can this location treat, including on-call exceptions?","https://www.sagecenters.com/locations/dublin
+https://www.sagecenters.com/services
+https://www.sagecenters.com/for-vets/faqs
+https://www.sagecenters.com/self-service-portal
+https://www.sagecenters.com/online-pharmacy","Public HTML and linked pages only; no authenticated portals, form submissions, or interactive widget testing. Shared SAGE pharmacy page links a Campbell storefront; group pages do not prove local deployment.","2026-11-14","5 page checks. Not found means not found on these pages, not confirmed absence. Website publication is not a current hospital quote."
+"Sage Veterinary Centers (Campbell)","https://www.sagecenters.com/locations/campbell","No clinical fees found","No local exam/procedure dollar fees found.
+Source: https://www.sagecenters.com/locations/campbell","Location scope unclear","No complete local admission species list found in checked pages.
+Source: https://www.sagecenters.com/locations/campbell","Listed","Emergency and specialty offerings plus local team/service detail; group menu broader than location.
+Source: https://www.sagecenters.com/locations/campbell","No live status found","Generic urgent-care/wait copy; no live local feed.
+Source: https://www.sagecenters.com/services","Vetsource","Google Tag Manager","Local fee/ranges, explicit species and timestamped activity.","Would staff maintain a timestamped activity category, and who approves changes? Can an approved exam fee or typical range be shared publicly? Which species can this location treat, including on-call exceptions?","https://www.sagecenters.com/locations/campbell
+https://www.sagecenters.com/services
+https://www.sagecenters.com/for-vets/faqs
+https://www.sagecenters.com/self-service-portal
+https://www.sagecenters.com/online-pharmacy","Public HTML and linked pages only; no authenticated portals, form submissions, or interactive widget testing. Shared SAGE pharmacy page links a Campbell storefront; group pages do not prove local deployment.","2026-11-14","5 page checks. Not found means not found on these pages, not confirmed absence. Website publication is not a current hospital quote."
+"Sage Veterinary Centers (Redwood City)","https://www.sagecenters.com/locations/redwood-city","No clinical fees found","No local exam/procedure dollar fees found.
+Source: https://www.sagecenters.com/locations/redwood-city","Location scope unclear","No explicit full local species intake list found.
+Source: https://www.sagecenters.com/locations/redwood-city","Listed","Anesthesiology, cardiology, critical care, dentistry, emergency, internal medicine, neurology, oncology, rehab and surgery listed.
+Source: https://www.sagecenters.com/locations/redwood-city","No live status found","Generic urgent-care wait reduction copy, not a current local feed.
+Source: https://www.sagecenters.com/services","Vetsource","Google Tag Manager","Local fee/ranges, species eligibility and live activity; clarify group versus local services.","Would staff maintain a timestamped activity category, and who approves changes? Can an approved exam fee or typical range be shared publicly? Which species can this location treat, including on-call exceptions?","https://www.sagecenters.com/locations/redwood-city
+https://www.sagecenters.com/services
+https://www.sagecenters.com/for-vets/faqs
+https://www.sagecenters.com/self-service-portal
+https://www.sagecenters.com/online-pharmacy","Public HTML and linked pages only; no authenticated portals, form submissions, or interactive widget testing. Shared SAGE pharmacy page links a Campbell storefront; group pages do not prove local deployment.","2026-11-14","5 page checks. Not found means not found on these pages, not confirmed absence. Website publication is not a current hospital quote."
+"San Francisco Animal Medical Center","https://www.sfamc.com/","No clinical fees found","CareCredit and estimate-oriented care information found; clinical fees not found.
+Source: https://www.sfamc.com/","Location scope unclear","No complete admission species list found; descriptions of pets and equipment do not establish eligibility.
+Source: https://www.sfamc.com/","Listed","Primary care and specialty/emergency, surgery, oncology, medicine, cardiology and neurology listed.
+Source: https://www.sfamc.com/","No live status found","Emergency page describes prioritization by severity; no live queue/activity display found.
+Source: https://www.sfamc.com/specialty-care/emergency","Blue Rabbit, CareCredit","No classified infrastructure reference recorded","Clinical fees, explicit species scope and current activity; records/communication portal already exists.","Would staff maintain a timestamped activity category, and who approves changes? Can an approved exam fee or typical range be shared publicly? Which species can this location treat, including on-call exceptions?","https://www.sfamc.com/
+https://www.sfamc.com/specialty-care
+https://www.sfamc.com/specialty-care/emergency
+https://www.sfamc.com/pet-owners/self-service","Public HTML and linked pages only; no authenticated portals, form submissions, or interactive widget testing.","2026-11-14","4 page checks. Not found means not found on these pages, not confirmed absence. Website publication is not a current hospital quote."
+"VCA Encina (in Walnut Creek)","https://vcahospitals.com/encina","No clinical fees found","No exam/procedure dollar fee found on the primary and specialty landing pages checked.
+Source: https://vcahospitals.com/encina","Location scope unclear","Dog/cat education links are present, but not a clear admission species list.
+Source: https://vcahospitals.com/encina","Listed","Primary/specialty care, departmental navigation and referral forms are present.
+Source: https://vcahospitals.com/encina","No live status found","Hours and emergency access are published; no live wait/activity display found.
+Source: https://vcahospitals.com/encina","No named patient-facing third-party tool identified in checked pages","Google Tag Manager, OneTrust","Local clinical fees, species scope and current activity. Booking functionality was not tested.","Would staff maintain a timestamped activity category, and who approves changes? Can an approved exam fee or typical range be shared publicly? Which species can this location treat, including on-call exceptions?","https://vcahospitals.com/encina
+https://vcahospitals.com/encina/specialty","Public HTML and linked pages only; no authenticated portals, form submissions, or interactive widget testing.","2026-11-14","2 page checks. Not found means not found on these pages, not confirmed absence. Website publication is not a current hospital quote."
+"VCA Antioch","https://vcahospitals.com/east-bay-emergency","No clinical fees found","No clinical dollar fees found on location/team pages checked.
+Source: https://vcahospitals.com/east-bay-emergency","Location scope unclear","Cat/dog breed information links do not constitute a hospital intake species statement.
+Source: https://vcahospitals.com/east-bay-emergency","Listed","Emergency/critical care and diagnostic imaging procedures listed, including ultrasound, ventilation and transfusion therapy.
+Source: https://vcahospitals.com/east-bay-emergency","No live status found","Open 24-hour schedule found; no current wait/activity display.
+Source: https://vcahospitals.com/east-bay-emergency","No named patient-facing third-party tool identified in checked pages","Google Tag Manager, OneTrust","Fees, explicit species eligibility and live activity; hours are not capacity.","Would staff maintain a timestamped activity category, and who approves changes? Can an approved exam fee or typical range be shared publicly? Which species can this location treat, including on-call exceptions?","https://vcahospitals.com/east-bay-emergency
+https://vcahospitals.com/east-bay-emergency/team","Public HTML and linked pages only; no authenticated portals, form submissions, or interactive widget testing.","2026-11-14","2 page checks. Not found means not found on these pages, not confirmed absence. Website publication is not a current hospital quote."
+"Ironhorse Vet Care","https://www.ironhorsevetcare.com/","No clinical fees found","No clinical dollar fees found on homepage/FAQ checked.
+Source: https://www.ironhorsevetcare.com/","Partial / context only","Canine reproduction and brachycephalic service labels imply some dog care; no full hospital admission species list found.
+Source: https://www.ironhorsevetcare.com/","Listed","Emergency, internal medicine, surgery, orthopedics, cardiology, behavior and reproduction listed.
+Source: https://www.ironhorsevetcare.com/","No live status found","24/7 emergency availability advertised without live volume/wait information.
+Source: https://www.ironhorsevetcare.com/","Covetrus","Google Tag Manager, WordPress","Clinical fees, explicit species intake and current activity.","Would staff maintain a timestamped activity category, and who approves changes? Can an approved exam fee or typical range be shared publicly? Which species can this location treat, including on-call exceptions?","https://www.ironhorsevetcare.com/
+https://www.ironhorsevetcare.com/faq/","Public HTML and linked pages only; no authenticated portals, form submissions, or interactive widget testing.","2026-11-14","2 page checks. Not found means not found on these pages, not confirmed absence. Website publication is not a current hospital quote."
+"PETS Referral Center","https://www.petsreferralcenter.com/","No clinical fees found","No clinical dollar fees found on homepage/referral page checked.
+Source: https://www.petsreferralcenter.com/","Location scope unclear","Checked public pages describe pets, not an explicit species intake list. Interview spreadsheet data was not used as website evidence.
+Source: https://www.petsreferralcenter.com/","Partial listing","24/7 emergency and specialty services advertised, but a detailed treatment/service list was not found in the checked pages.
+Source: https://www.petsreferralcenter.com/","No live status found","24/7 staffing described; no current wait or timestamped volume feed found.
+Source: https://www.petsreferralcenter.com/","Otto / TeleVet","No classified infrastructure reference recorded","Clinical fees, species intake, treatment detail and live activity; confirm scope on additional pages/with staff.","Would staff maintain a timestamped activity category, and who approves changes? Can an approved exam fee or typical range be shared publicly? Which species can this location treat, including on-call exceptions?","https://www.petsreferralcenter.com/
+https://www.petsreferralcenter.com/referral-page","Public HTML and linked pages only; no authenticated portals, form submissions, or interactive widget testing.","2026-11-14","2 page checks. Not found means not found on these pages, not confirmed absence. Website publication is not a current hospital quote."
+"Pet Emergency & Specialty Center or Marin","https://pescm.com/","No clinical fees found","No first-party clinical fees found; owner reviews mentioning costs are not hospital pricing.
+Source: https://pescm.com/","Location scope unclear","Dog/cat blood-donor statements and staff interests in exotics are not a full admission species policy.
+Source: https://pescm.com/","Listed","Emergency and multiple specialty services, diagnostic and treatment capabilities described.
+Source: https://pescm.com/","No live status found","24/7 emergency care and no appointment needed, but no current queue/activity feed found.
+Source: https://pescm.com/","No named patient-facing third-party tool identified in checked pages","No classified infrastructure reference recorded","Clinical fees, explicit species policy and live activity; do not infer exotic intake from staff bios.","Would staff maintain a timestamped activity category, and who approves changes? Can an approved exam fee or typical range be shared publicly? Which species can this location treat, including on-call exceptions?","https://pescm.com/
+https://pescm.com/san-rafael-ca/vet-emergency/
+https://pescm.com/san-rafael-ca/referring-veterinarians/","Public HTML and linked pages only; no authenticated portals, form submissions, or interactive widget testing.","2026-11-14","3 page checks. Not found means not found on these pages, not confirmed absence. Website publication is not a current hospital quote."
+"North Penninsula Veterinary Emergency Clinic","https://sanmateoveter.com/","No clinical fees found","Financing terms include purchase/interest examples, not hospital exam/treatment prices.
+Source: https://sanmateoveter.com/","Dogs/cats explicitly described","Homepage explicitly says services for dogs and cats of all breeds, ages and medical conditions.
+Source: https://sanmateoveter.com/","Listed","24-hour emergency, specialty, urgent care and listed diagnostic/treatment services.
+Source: https://sanmateoveter.com/","No live status found","24-hour hours advertised; no live status found.
+Source: https://sanmateoveter.com/","CareCredit","Google Tag Manager","Clinical fees and live activity; retain current hospital identity after old domain redirect.","Would staff maintain a timestamped activity category, and who approves changes? Can an approved exam fee or typical range be shared publicly?","https://sanmateoveter.com/
+https://sanmateoveter.com/services
+https://sanmateoveter.com/about-us/staff/veterinarians/dr-hana-link
+https://sanmateoveter.com/resources/payment-options","Public HTML and linked pages only; no authenticated portals, form submissions, or interactive widget testing. Former North Peninsula domain redirects to the current San Mateo Veterinary Emergency site.","2026-11-14","4 page checks. Not found means not found on these pages, not confirmed absence. Website publication is not a current hospital quote."
+"Solan-Napa Pet Specialty & ER","https://solanopetemergency.com/","No clinical fees found","Payment/financing choices and estimates are described; no clinical dollar fees found.
+Source: https://solanopetemergency.com/","Dogs/cats explicitly described","Homepage explicitly describes specialty/emergency care for dogs and cats.
+Source: https://solanopetemergency.com/","Listed","Emergency, critical care, internal medicine, surgery and cardiology are listed.
+Source: https://solanopetemergency.com/","No live status found","24-hour emergency service described without current wait/activity status.
+Source: https://solanopetemergency.com/","CareCredit, Otto / TeleVet, Scratchpay","Google Tag Manager","Local clinical fees and live activity; assess how existing Otto workflow could support updates.","Would staff maintain a timestamped activity category, and who approves changes? Can an approved exam fee or typical range be shared publicly?","https://solanopetemergency.com/
+https://solanopetemergency.com/services
+https://solanopetemergency.com/faqs
+https://solanopetemergency.com/payment-options
+https://solanopetemergency.com/referring-veterinarians","Public HTML and linked pages only; no authenticated portals, form submissions, or interactive widget testing.","2026-11-14","5 page checks. Not found means not found on these pages, not confirmed absence. Website publication is not a current hospital quote."
+"Bishop Ranch Veterinary Center & Urgent Care","https://www.webvets.com/","Published urgent/emergency exam fees","Urgent/emergency page lists urgent exam $110 and emergency exam $150. These differ from the older $85 interview entry; validate date and service definitions before reconciling.
+Source: https://www.webvets.com/services/emergency-urgent-care.html","Partial / exotics described","Services page has an Exotic Pets service and references dogs/cats; exact species coverage and urgent-care availability require confirmation.
+Source: https://www.webvets.com/services.html","Listed","Primary, urgent/emergency care, imaging, surgery, dentistry and exotic pet services described.
+Source: https://www.webvets.com/","No live status found","Page explains medical triage and explicitly asks owners to call ahead for an estimated wait; no live feed found.
+Source: https://www.webvets.com/services/emergency-urgent-care.html","Cherry, Oliver, Trupanion","Google Tag Manager","Timestamped activity and clearer service definitions/date-stamped fees. Published fees should not be labeled missing.","Are $110 urgent and $150 emergency fees current, and how do they compare with the prior $85 interview entry? Can staff share a timestamped activity level?","https://www.webvets.com/
+https://www.webvets.com/services.html
+https://www.webvets.com/services/emergency-urgent-care.html
+https://www.webvets.com/pet-insurance.html
+https://www.webvets.com/services/online-booking.html
+https://www.webvets.com/payment-options.html","Public HTML and linked pages only; no authenticated portals, form submissions, or interactive widget testing.","2026-11-14","6 page checks. Not found means not found on these pages, not confirmed absence. Website publication is not a current hospital quote."

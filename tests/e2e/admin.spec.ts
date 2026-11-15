@@ -28,15 +28,13 @@ test("admin import deduplicates, preserves edits, resolves conflicts and updates
   await ap.getByRole("button", { name: "Save hospital changes" }).click();
   const csv = readFileSync("data/hospitals.csv", "utf8");
   await ap.getByRole("tab", { name: "Imports & sources" }).click();
-  await ap
-    .getByLabel("Import hospital CSV")
-    .setInputFiles({
-      name: "hospitals.csv",
-      mimeType: "text/csv",
-      buffer: Buffer.from(csv),
-    });
+  await ap.getByLabel("Import hospital CSV").setInputFiles({
+    name: "hospitals.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from(csv),
+  });
   await expect(
-    ap.getByText(/Import complete: 5 interview rows processed/),
+    ap.getByText(/Import complete: 5 source rows processed/),
   ).toBeVisible();
   const after = await (await admin.request.get("/api/providers")).json();
   expect(after.length).toBe(initial.length);

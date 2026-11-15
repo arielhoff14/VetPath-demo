@@ -1,3 +1,5 @@
+import { locate, locationInText } from "./locations";
+export { locate, places } from "./locations";
 export type Provider = {
   id: string;
   name: string;
@@ -5,6 +7,9 @@ export type Provider = {
   category: string;
   phone: string | null;
   address: string | null;
+  postal_code?: string | null;
+  coordinate_source?: string;
+  address_checked?: string | null;
   website: string | null;
   lat: number | null;
   lng: number | null;
@@ -37,24 +42,6 @@ export type Filters = {
   lat?: number;
   lng?: number;
 };
-export const places: Record<string, [number, number]> = {
-  "san francisco": [37.7749, -122.4194],
-  "mission district": [37.7599, -122.4148],
-  "94103": [37.7739, -122.4112],
-  "94110": [37.7486, -122.4158],
-  "94112": [37.721, -122.441],
-  "san jose": [37.3382, -121.8863],
-  lafayette: [37.8858, -122.118],
-  sacramento: [38.5816, -121.4944],
-  oakland: [37.8044, -122.2712],
-};
-export function locate(value: string) {
-  const normalized = value
-    .toLowerCase()
-    .replace(/,?\s*ca(lifornia)?\s*$/, "")
-    .trim();
-  return places[normalized];
-}
 export function distance(a: number, b: number, c: number, d: number) {
   const r = Math.PI / 180;
   const v =
@@ -96,7 +83,7 @@ export function interpret(text: string) {
           : /urgent|vomit|limp|diarrhea/.test(s)
             ? "Urgent care"
             : undefined;
-  const location = Object.keys(places).find((x) => s.includes(x));
+  const location = locationInText(text);
   return { emergency, species, service, location };
 }
 export function matchProviders(
@@ -108,6 +95,7 @@ export function matchProviders(
     f.lat !== undefined && f.lng !== undefined
       ? [f.lat, f.lng]
       : locate(f.location);
+  if (f.location.trim() && !coords) return [];
   return providers
     .map((p) => ({
       ...p,

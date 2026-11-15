@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { pool, query } from "@/lib/db";
 import { session, setSession } from "@/lib/auth";
+import { importDirectory, addressLocation } from "@/lib/directory";
 import { importSheet } from "@/lib/importer";
 import { allowedStage } from "@/lib/domain";
 import { organizeRequest } from "@/lib/assistant";
@@ -134,7 +135,7 @@ async function handle(
       return NextResponse.json(
         (
           await query(
-            `SELECT id,name,city,category,phone,address,website,lat,lng,species,services,hours,scope,cost_note,exam_fee,source_url,source_checked,source_kind,source_notes,partner,availability,availability_at,updated_at,version,simulated,field_overrides FROM providers ORDER BY name`,
+            `SELECT id,name,city,category,phone,address,postal_code,coordinate_source,address_checked,website,lat,lng,species,services,hours,scope,cost_note,exam_fee,source_url,source_checked,source_kind,source_notes,partner,availability,availability_at,updated_at,version,simulated,field_overrides FROM providers ORDER BY name`,
           )
         ).rows,
       );
@@ -144,14 +145,25 @@ async function handle(
       if (s.role !== "admin" && body.partner !== undefined)
         throw new Error("Forbidden");
       const { version, ...changes } = body;
-      const fields = Object.keys(changes);
+      const updates: Record<string, unknown> = { ...changes };
+      if (changes.address)
+        Object.assign(updates, addressLocation(changes.address));
+      const fields = Object.keys(updates);
       if (!fields.length) throw new Error("No changes supplied");
-      const vals = Object.values(changes);
+      const vals = Object.values(updates);
       const sets = fields.map((f, i) => `${f}=$${i + 1}`);
       if (body.availability !== undefined)
         sets.push("availability_at=now()", "simulated=true");
       const protectedFields = fields.filter(
-        (f) => !["availability", "partner"].includes(f),
+        (f) =>
+          ![
+            "availability",
+            "partner",
+            "lat",
+            "lng",
+            "coordinate_source",
+            "address_checked",
+          ].includes(f),
       );
       const c = await pool.connect();
       try {
@@ -190,7 +202,7 @@ async function handle(
         {
           species: result.species || "Unspecified",
           service: result.service || "Any care",
-          location: result.location || "San Francisco",
+          location: result.location || "All locations",
           emergency: result.emergency,
         },
       ]);
@@ -630,6 +642,11 @@ async function handle(
           audit: (
             await query("SELECT * FROM audit ORDER BY created_at DESC LIMIT 40")
           ).rows,
+          directorySources: (
+            await query(
+              "SELECT source_key,provider_id,imported_at FROM directory_sources",
+            )
+          ).rows,
           interviews: (
             await query(
               "SELECT source_id,provider_id,imported_at FROM interviews",
@@ -644,28 +661,61 @@ async function handle(
           })
           .parse(await req.json());
         let csv = b.csv;
+        let pricingCsv: string | undefined;
+        let auditCsv: string | undefined;
         if (b.sync) {
-          const r = await fetch(
-            "https://docs.google.com/spreadsheets/d/1Bm70UnTK56-J-U9bgxAUKzTwmA6JIlIn8DYnUudk_TE/export?format=csv&gid=440460470",
-            { signal: AbortSignal.timeout(20000), cache: "no-store" },
+          const root =
+            "https://docs.google.com/spreadsheets/d/1Bm70UnTK56-J-U9bgxAUKzTwmA6JIlIn8DYnUudk_TE";
+          const urls = [
+            root + "/export?format=csv&gid=440460470",
+            root + "/gviz/tq?tqx=out:csv&sheet=Pricing%20Comparison&headers=0",
+            root + "/gviz/tq?tqx=out:csv&sheet=Website%20Audit&headers=0",
+          ];
+          [csv, pricingCsv, auditCsv] = await Promise.all(
+            urls.map(async (url) => {
+              const r = await fetch(url, {
+                signal: AbortSignal.timeout(20000),
+                cache: "no-store",
+              });
+              if (!r.ok)
+                throw new Error(
+                  "Spreadsheet unavailable. No changes imported. Upload an exported CSV instead.",
+                );
+              return r.text();
+            }),
           );
-          if (!r.ok)
-            throw new Error(
-              "Spreadsheet unavailable. Upload an exported CSV instead.",
-            );
-          csv = await r.text();
         }
         if (!csv) throw new Error("Provide a CSV file");
         const c = await pool.connect();
         try {
           await c.query("BEGIN");
-          const result = await importSheet(
-            c,
-            csv,
-            b.sync ? "Google Sheets live sync" : "Uploaded CSV",
-          );
+          const result =
+            !b.sync &&
+            csv.includes('"Hospital street address"') &&
+            !csv.includes('"Interview ID"')
+              ? await importDirectory(
+                  c,
+                  csv,
+                  undefined,
+                  "Uploaded Pricing Comparison CSV",
+                )
+              : await importSheet(
+                  c,
+                  csv,
+                  b.sync
+                    ? "Google Sheets · Interview Tracker"
+                    : "Uploaded interview CSV",
+                );
+          const directory = pricingCsv
+            ? await importDirectory(
+                c,
+                pricingCsv,
+                auditCsv,
+                "Google Sheets · Pricing Comparison + Website Audit",
+              )
+            : null;
           await c.query("COMMIT");
-          return NextResponse.json(result);
+          return NextResponse.json({ ...result, directory });
         } catch (e) {
           await c.query("ROLLBACK");
           throw e;
@@ -704,12 +754,26 @@ async function handle(
                 "source_checked",
                 "source_notes",
                 "source_kind",
+                "species",
               ].includes(conflict.field)
             )
               throw new Error("Invalid field");
             await c.query(
               `UPDATE providers SET ${conflict.field}=$1,field_overrides=array_remove(field_overrides,$2),version=version+1,updated_at=now() WHERE id=$3`,
               [conflict.incoming_value, conflict.field, conflict.provider_id],
+            );
+          }
+          if (b.apply && conflict.field === "address") {
+            const geo = addressLocation(String(conflict.incoming_value));
+            await c.query(
+              "UPDATE providers SET lat=$1,lng=$2,coordinate_source=$3,address_checked=$4 WHERE id=$5",
+              [
+                geo.lat,
+                geo.lng,
+                geo.coordinate_source,
+                geo.address_checked,
+                conflict.provider_id,
+              ],
             );
           }
           await c.query("UPDATE conflicts SET status=$1 WHERE id=$2", [

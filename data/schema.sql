@@ -27,3 +27,14 @@ CREATE TABLE IF NOT EXISTS conflicts (id uuid PRIMARY KEY DEFAULT gen_random_uui
 CREATE INDEX IF NOT EXISTS intake_provider_idx ON intakes(provider_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS intake_session_idx ON intakes(owner_session);
 CREATE INDEX IF NOT EXISTS event_time_idx ON events(created_at);
+
+-- Regional directory upgrade: additive, safe for existing intakes and staff edits.
+ALTER TABLE providers ADD COLUMN IF NOT EXISTS postal_code text GENERATED ALWAYS AS (substring(address from '\m([0-9]{5})(?:-[0-9]{4})?\M')) STORED;
+ALTER TABLE providers ADD COLUMN IF NOT EXISTS coordinate_source text NOT NULL DEFAULT 'Approximate legacy coordinates';
+ALTER TABLE providers ADD COLUMN IF NOT EXISTS address_checked timestamptz;
+CREATE TABLE IF NOT EXISTS directory_sources (
+ source_key text PRIMARY KEY, provider_id text NOT NULL REFERENCES providers(id),
+ pricing_raw jsonb NOT NULL, audit_raw jsonb, imported_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS data_migrations (id text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now());
+CREATE INDEX IF NOT EXISTS provider_postal_idx ON providers(postal_code);

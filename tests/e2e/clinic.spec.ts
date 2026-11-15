@@ -78,13 +78,27 @@ test("separate owner and clinic sessions share intakes, assessments, messages an
   await cp.getByRole("button", { name: "Limited", exact: true }).click();
   await cp.getByRole("button", { name: "Publish demo availability" }).click();
   await expect(
-    op.locator(".provider-card").filter({ hasText: "SAGE Veterinary Centers" }),
+    op
+      .locator(".provider-card")
+      .filter({
+        has: op.getByRole("button", {
+          name: "SAGE Veterinary Centers",
+          exact: true,
+        }),
+      }),
   ).toContainText("Limited");
   // Restore the baseline for the rest of the presentation.
   await cp.getByRole("button", { name: "Accepting", exact: true }).click();
   await cp.getByRole("button", { name: "Publish demo availability" }).click();
   await expect(
-    op.locator(".provider-card").filter({ hasText: "SAGE Veterinary Centers" }),
+    op
+      .locator(".provider-card")
+      .filter({
+        has: op.getByRole("button", {
+          name: "SAGE Veterinary Centers",
+          exact: true,
+        }),
+      }),
   ).toContainText("Accepting patients");
   await cp.getByRole("tab", { name: "Team coverage" }).click();
   await cp.getByRole("button", { name: "Add team member" }).click();

@@ -47,3 +47,10 @@ The live Railway health endpoint returned HTTP 200 and confirmed PostgreSQL conn
 Local Cloud Chromium did not trust the environment proxy certificate. A persistent trust-store change was rejected by automatic approval review; no certificate checks were disabled. The public-browser recording runs on GitHub Actions to avoid that environment-specific issue.
 
 Public recording verification completed successfully: [workflow run](https://github.com/arielhoff14/VetPath-demo/actions/runs/43674449931). The four-chapter, 55-second MP4 and its assertion manifest are available in the [public video release](https://github.com/arielhoff14/VetPath-demo/releases/tag/demo-verification-v0.1). All recording assertions passed against the public Railway deployment. The current CI workflow also passed all six browser scenarios and six domain tests.
+
+## Regional directory and ZIP regression coverage
+
+- Domain tests validate 28 source rows from both directory tabs, all 27 identified address coordinate records, 569 supported ZIP codes, city/state spellings, ZIP+4, explicit invalid ZIP behavior, and the unfiltered default.
+- Browser tests cover the five expected San Jose-area hospitals; 18 city/ZIP pairs spanning all nine Bay Area counties; clearing location; ZIPs in chat; directory ZIP search; and address changes observed in a separate owner session.
+- A separate admin session reimports the directory twice to check deduplication and protected address conflicts, then applies the source address and verifies the ZIP and coordinates return together.
+- `Verify live regional searches` runs the non-destructive search regression against the public Railway deployment with normal HTTPS verification. It does not edit public provider addresses or reset public data.

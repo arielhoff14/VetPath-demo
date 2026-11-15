@@ -88,3 +88,7 @@ Use a **disposable PostgreSQL database** for browser tests: tests create fiction
 ## Deployment
 
 See [deployment instructions](docs/DEPLOYMENT.md) for Docker and Node hosting, environment variables, health checks, and remaining dependencies. The public demo and PostgreSQL database are deployed on Railway. Real clinical use still requires identity verification, operational agreements, and live integrations.
+
+### Regional directory and location search
+
+The default owner view lists all 29 sourced provider records. Enter a city, ZIP, ZIP+4, or use browser location to narrow by distance. San Jose searches include the nearby Campbell and Mountain View hospitals with their correct city labels. The bundled location index supports 569 ZIP codes across the nine Bay Area counties plus Sacramento. Google Sheets sync imports Interview Tracker, Pricing Comparison and Website Audit together. See [source details](docs/SOURCES.md) and [regression checks](docs/TESTING.md).

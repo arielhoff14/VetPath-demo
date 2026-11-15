@@ -1,5 +1,6 @@
 "use client";
 import { useState, useMemo } from "react";
+import { locationSuggestions } from "@/lib/locations";
 import {
   ArrowUp,
   ArrowUpRight,
@@ -50,7 +51,7 @@ export default function Owner({ providers }: { providers: Provider[] }) {
   const [filters, setFilters] = useState<Filters>({
     species: "Any pet",
     service: "Any care",
-    location: "San Francisco",
+    location: "",
     radius: 25,
     available: false,
   });
@@ -65,7 +66,9 @@ export default function Owner({ providers }: { providers: Provider[] }) {
   const [showFilters, setShowFilters] = useState(false);
   const [compare, setCompare] = useState<string[]>([]);
   const [showCompare, setShowCompare] = useState(false);
-  const [selected, setSelected] = useState<Provider | null>(null);
+  const [selectedSnapshot, setSelected] = useState<Provider | null>(null);
+  const selected =
+    providers.find((p) => p.id === selectedSnapshot?.id) || selectedSnapshot;
   const [intake, setIntake] = useState<Provider | null>(null);
   const [requests, setRequests] = useState(false);
   const [map, setMap] = useState(false);
@@ -329,25 +332,25 @@ export default function Owner({ providers }: { providers: Provider[] }) {
               <MapPin size={18} />
               <input
                 aria-label="Search location"
+                placeholder="All locations · enter city or ZIP"
                 value={filters.location}
                 onChange={(e) => change("location", e.target.value)}
                 list="locations"
               />
               <datalist id="locations">
-                {[
-                  "San Francisco",
-                  "Mission District",
-                  "94103",
-                  "94110",
-                  "94112",
-                  "Oakland",
-                  "Lafayette",
-                  "San Jose",
-                  "Sacramento",
-                ].map((x) => (
+                {locationSuggestions.map((x) => (
                   <option key={x} value={x} />
                 ))}
               </datalist>
+              {filters.location && (
+                <button
+                  aria-label="Clear location filter"
+                  title="Show all locations"
+                  onClick={() => change("location", "")}
+                >
+                  <X size={16} />
+                </button>
+              )}
               <button
                 onClick={geolocate}
                 disabled={locating}
@@ -369,12 +372,15 @@ export default function Owner({ providers }: { providers: Provider[] }) {
               </span>
             </button>
           </div>
-          {!filters.lat && !locate(filters.location) && (
-            <Notice error>
-              Choose a supported Bay Area city or ZIP from the suggestions, or
-              use your location. Distances are unavailable for this entry.
-            </Notice>
-          )}
+          {filters.location.trim() &&
+            filters.lat === undefined &&
+            !locate(filters.location) && (
+              <Notice error>
+                We couldn’t find that city or ZIP code. Enter a Bay Area city or
+                ZIP, use your location, or clear the location to see all
+                providers.
+              </Notice>
+            )}
           <div className="quick-filters">
             <label>
               <PawPrint size={14} />
@@ -438,8 +444,8 @@ export default function Owner({ providers }: { providers: Provider[] }) {
                 </select>
               </Field>
               <span>
-                Distances are approximate straight-line estimates. Intake status
-                expires after 60 minutes.
+                Distances are approximate straight-line estimates, using ZIP
+                centers when needed. Intake status expires after 60 minutes.
               </span>
               <button
                 className="text-button"
@@ -448,7 +454,7 @@ export default function Owner({ providers }: { providers: Provider[] }) {
                   setFilters({
                     species: "Any pet",
                     service: "Any care",
-                    location: "San Francisco",
+                    location: "",
                     radius: 25,
                     available: false,
                   });
@@ -483,15 +489,18 @@ export default function Owner({ providers }: { providers: Provider[] }) {
           <div className="results-heading">
             <div>
               <h2>
-                Care near{" "}
-                {filters.location === "My location" ? "you" : filters.location}
+                {filters.location.trim()
+                  ? `Care near ${filters.location === "My location" ? "you" : filters.location}`
+                  : "Explore all care locations"}
               </h2>
               <p>
                 {matches.length}{" "}
                 {matches.length === 1 ? "provider" : "providers"} ·{" "}
                 {emergency
                   ? "Nearest emergency care first"
-                  : "Appropriate care, thoughtfully matched"}
+                  : filters.location.trim()
+                    ? `Within ${filters.radius} miles · nearby cities included`
+                    : "All listed locations · filter to narrow your search"}
               </p>
             </div>
             <div className="view-toggle">
@@ -542,19 +551,30 @@ export default function Owner({ providers }: { providers: Provider[] }) {
               />
             ))}
           </div>
-          {!matches.length && (
-            <Empty
-              title="Let’s widen the search"
-              body="No providers match every selected filter. Try a larger radius or another care type. Species acceptance may need a phone call."
-            />
-          )}
+          {!matches.length &&
+            (!filters.location.trim() ||
+              locate(filters.location) ||
+              filters.lat !== undefined) && (
+              <Empty
+                title="Let’s widen the search"
+                body="No providers match every selected filter. Try a larger radius or another care type. Species acceptance may need a phone call."
+              />
+            )}
           <div className="results-footnote">
             <ShieldCheck size={15} />
             <span>
               Public listings and clinic updates, with sources you can check.
               <br />
               An intake request is not an appointment or a guarantee of
-              acceptance.
+              acceptance. City and ZIP locations:{" "}
+              <a
+                href="https://www.geonames.org/"
+                target="_blank"
+                rel="noreferrer"
+              >
+                GeoNames
+              </a>{" "}
+              (CC BY 4.0).
             </span>
           </div>
         </section>
@@ -637,6 +657,13 @@ export default function Owner({ providers }: { providers: Provider[] }) {
                 <MapPin size={15} />{" "}
                 {selected.address || "Street address unverified"}
               </p>
+              <p className="tiny">
+                Address source checked:{" "}
+                {sourceDate(
+                  selected.address_checked || selected.source_checked,
+                )}
+                . {selected.coordinate_source || "Approximate coordinates"}.
+              </p>
               <p>
                 <Clock3 size={15} /> {selected.hours}
               </p>
@@ -668,7 +695,9 @@ export default function Owner({ providers }: { providers: Provider[] }) {
               <strong>
                 {selected.source_kind === "spreadsheet"
                   ? "Interview tracker & public contact source"
-                  : "Public website information"}
+                  : selected.source_kind === "directory"
+                    ? "Spreadsheet directory & public branch sources"
+                    : "Public website information"}
               </strong>
               <p>{selected.source_notes}</p>
               {!!selected.field_overrides?.length && (

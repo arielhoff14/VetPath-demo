@@ -123,3 +123,78 @@ test("spreadsheet preamble and all five source interviews are retained", () => {
 test("invalid spreadsheet is rejected instead of silently imported", () => {
   assert.throws(() => parseSheet("name,phone\nFake,123"), /Expected/);
 });
+
+test("all regional ZIPs, city/state spellings and ZIP+4 resolve without a network dependency", async () => {
+  const { postalPlaces, locate, locationInText } =
+    await import("../lib/locations");
+  assert.ok(Object.keys(postalPlaces).length > 550);
+  for (const zip of [
+    "94103",
+    "94110",
+    "94112",
+    "95112",
+    "94954",
+    "94558",
+    "95401",
+    "94534",
+    "94401",
+    "94607",
+  ])
+    assert.ok(locate(zip), zip);
+  for (const [zip, [city, lat, lng]] of Object.entries(postalPlaces)) {
+    assert.deepEqual(locate(zip), [lat, lng], zip);
+    assert.deepEqual(locate(`${city}, CA ${zip}-1234`), [lat, lng]);
+    assert.ok(locate(`${city}, California`), city);
+  }
+  assert.deepEqual(locate(" San José, CA "), locate("San Jose"));
+  assert.equal(locationInText("dog needs care near 95112"), "95112");
+  assert.equal(locationInText("cat in San Ramon needs help"), "san ramon");
+  assert.equal(locationInText("pet care in mountains"), undefined);
+  assert.equal(locate("99999"), undefined);
+  assert.equal(locate("San Jose, CA 99999"), undefined);
+});
+test("default list includes every location; invalid entered locations never silently show all", () => {
+  const p = [
+    provider({ id: "sf" }),
+    provider({ id: "unknown", lat: null, lng: null }),
+    provider({ id: "sj", lat: 37.3382, lng: -121.8863 }),
+  ];
+  const f = {
+    species: "Any pet",
+    service: "Any care",
+    location: "",
+    available: false,
+    radius: 25,
+  };
+  assert.equal(matchProviders(p, f).length, 3);
+  assert.equal(matchProviders(p, { ...f, location: "99999" }).length, 0);
+  assert.deepEqual(
+    matchProviders(p, { ...f, location: "95112" }).map((x) => x.id),
+    ["sj"],
+  );
+});
+test("regional spreadsheet parser retains all 28 sources and geocodes all identified branches", async () => {
+  const { parseDirectoryCsv, addressLocation } =
+    await import("../lib/directory");
+  const rows = parseDirectoryCsv(
+    readFileSync("data/pricing-comparison.csv", "utf8"),
+    "pricing",
+  );
+  const audits = parseDirectoryCsv(
+    readFileSync("data/website-audit.csv", "utf8"),
+    "audit",
+  );
+  assert.equal(rows.length, 28);
+  assert.equal(audits.length, 28);
+  for (const row of rows.filter(
+    (r) => r["Hospital street address"] !== "Not verified",
+  )) {
+    const geo = addressLocation(row["Hospital street address"]);
+    assert.ok(geo.lat && geo.lng, row.Hospital);
+    assert.ok(geo.lat > 37 && geo.lat < 39 && geo.lng < -121 && geo.lng > -123);
+  }
+  assert.throws(
+    () => parseDirectoryCsv("Name,City\nBad,Nowhere", "pricing"),
+    /Expected/,
+  );
+});

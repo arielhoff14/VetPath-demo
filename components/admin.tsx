@@ -50,6 +50,7 @@ export default function Admin({
     conflicts: [],
     audit: [],
     interviews: [],
+    directorySources: [],
   });
   async function sync(csv?: string) {
     if (syncing.current) return;
@@ -63,7 +64,7 @@ export default function Admin({
         csv ? { csv } : { sync: true },
       );
       setFeedback(
-        `Import complete: ${r.rows} interview rows processed; ${r.merged} matched existing hospitals. Staff edits are preserved and conflicts are ready for review.`,
+        `Import complete: ${r.rows} source rows processed; ${r.merged} matched existing hospitals.${r.directory ? ` Regional directory: ${r.directory.rows} rows and ${r.directory.auditRows} website audits processed.` : ""} Staff edits are preserved and conflicts are ready for review.`,
       );
       refresh();
       refreshProviders();
@@ -95,7 +96,17 @@ export default function Admin({
     }
   }
   const filtered = providers.filter((p) =>
-    (p.name + " " + p.city + " " + p.category + " " + p.services.join(" "))
+    (
+      p.name +
+      " " +
+      p.city +
+      " " +
+      (p.address || "") +
+      " " +
+      p.category +
+      " " +
+      p.services.join(" ")
+    )
       .toLowerCase()
       .includes(search.toLowerCase()),
   );
@@ -198,7 +209,7 @@ export default function Admin({
             </div>
             <input
               aria-label="Search hospital directory"
-              placeholder="Search hospitals, cities, services…"
+              placeholder="Search hospitals, cities, ZIP codes…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -221,7 +232,8 @@ export default function Admin({
                     <td>
                       <strong>{p.name}</strong>
                       <small>
-                        {p.city} ·{" "}
+                        {p.city}
+                        {p.postal_code ? ` ${p.postal_code}` : ""} ·{" "}
                         {p.species.join(", ") || "Species unconfirmed"}
                       </small>
                     </td>
@@ -237,7 +249,9 @@ export default function Admin({
                       >
                         {p.source_kind === "spreadsheet"
                           ? "Interview tracker"
-                          : "Public website"}{" "}
+                          : p.source_kind === "directory"
+                            ? "Directory + public sources"
+                            : "Public website"}{" "}
                         <ExternalLink size={11} />
                       </a>
                     </td>
@@ -273,14 +287,17 @@ export default function Admin({
           <section className="panel">
             <h2>Your spreadsheet, connected</h2>
             <p className="muted" style={{ fontSize: 12 }}>
-              Import the original interview tracker without losing duplicate
-              interviews or replacing staff-owned facts.
+              Import all three source tabs without losing original evidence or
+              replacing staff-owned facts.
             </p>
             <div className="source-box">
               <FileSpreadsheet size={24} />
               <div>
                 <strong>Veterinary Emergency-Care Interview Tracker</strong>
-                <p>Google Sheets · 5 original interviews → 4 hospitals</p>
+                <p>
+                  Google Sheets · Interview Tracker + Pricing Comparison +
+                  Website Audit
+                </p>
                 <a
                   href="https://docs.google.com/spreadsheets/d/1Bm70UnTK56-J-U9bgxAUKzTwmA6JIlIn8DYnUudk_TE/edit?gid=440460470#gid=440460470"
                   target="_blank"
@@ -363,9 +380,10 @@ export default function Admin({
             <div className="divider" />
             <h3>How updates are handled</h3>
             <p className="muted" style={{ fontSize: 12 }}>
-              Records match by interview ID, normalized phone, or hospital name
-              and city. Original interviews remain attached to their hospital.
-              Empty interview cells do not erase known capabilities.
+              Records match by source identity, normalized phone, or branch URL.
+              Original interviews and directory evidence remain attached to
+              their hospital. Empty interview cells do not erase known
+              capabilities.
             </p>
             <p className="muted" style={{ fontSize: 12 }}>
               Clinic and administrator edits become protected fields. Incoming

@@ -1,3 +1,4 @@
+import { addressLocation, applySourceFields } from "./directory";
 import { parse } from "csv-parse/sync";
 import type { PoolClient } from "pg";
 import { normalizedPhone } from "./domain";
@@ -106,25 +107,10 @@ export async function importSheet(
         ],
       );
     }
-    for (const [field, value] of Object.entries(fields)) {
-      if (
-        prev?.field_overrides.includes(field) &&
-        JSON.stringify(prev[field]) !== JSON.stringify(value)
-      ) {
-        await client.query(
-          `INSERT INTO conflicts(provider_id,field,current_value,incoming_value) SELECT $1,$2,$3::jsonb,$4::jsonb WHERE NOT EXISTS(SELECT 1 FROM conflicts WHERE provider_id=$1 AND field=$2 AND status IN ('pending','kept') AND incoming_value=$4::jsonb AND current_value=$3::jsonb)`,
-          [id, field, JSON.stringify(prev[field]), JSON.stringify(value)],
-        );
-      } else if (!(prev && field === "name" && id !== sid.toLowerCase()))
-        await client.query(`UPDATE providers SET ${field}=$1 WHERE id=$2`, [
-          value,
-          id,
-        ]);
-    }
-    await client.query(
-      `UPDATE providers SET version=version+1,updated_at=now() WHERE id=$1`,
-      [id],
-    );
+    if (fields.address)
+      Object.assign(fields, addressLocation(String(fields.address)));
+    if (prev && id !== sid.toLowerCase()) delete fields.name;
+    await applySourceFields(client, id, prev, fields);
     await client.query(
       `INSERT INTO interviews(source_id,provider_id,raw) VALUES($1,$2,$3) ON CONFLICT(source_id) DO UPDATE SET raw=$3,imported_at=now()`,
       [sid, id, row],

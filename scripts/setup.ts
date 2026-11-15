@@ -1,5 +1,10 @@
 import { readFileSync } from "node:fs";
 import { pool } from "../lib/db";
+import {
+  importDirectory,
+  applySourceFields,
+  addressLocation,
+} from "../lib/directory";
 import { importSheet } from "../lib/importer";
 async function main() {
   const c = await pool.connect();
@@ -114,6 +119,34 @@ async function main() {
       }
       await c.query(
         `INSERT INTO coverage(provider_id,name,role,shift) VALUES('sage-sf','Dr. Taylor Kim','Emergency veterinarian','8:00 AM – 6:00 PM'),('sage-sf','Jamie Rivera','Registered veterinary technician','8:00 AM – 4:00 PM'),('sage-sf','Casey Brooks','Client care coordinator','10:00 AM – 6:00 PM')`,
+      );
+    }
+    await c.query("SELECT pg_advisory_xact_lock(746381)");
+    if (
+      !(
+        await c.query(
+          "SELECT id FROM data_migrations WHERE id='regional-directory-v1'",
+        )
+      ).rowCount
+    ) {
+      await importDirectory(
+        c,
+        readFileSync("data/pricing-comparison.csv", "utf8"),
+        readFileSync("data/website-audit.csv", "utf8"),
+        "Regional directory · Pricing Comparison + Website Audit · 2026-11-15",
+      );
+      const sf = (await c.query("SELECT * FROM providers WHERE id='sf-vet'"))
+        .rows[0];
+      if (sf) {
+        const address = "2001 Harrison Street, San Francisco, CA 94110";
+        await applySourceFields(c, sf.id, sf, {
+          address,
+          ...addressLocation(address),
+          address_checked: "2026-11-15",
+        });
+      }
+      await c.query(
+        "INSERT INTO data_migrations(id) VALUES('regional-directory-v1')",
       );
     }
     await c.query("COMMIT");
