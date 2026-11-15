@@ -24,7 +24,7 @@ jobs:
             const response = await fetch('https://vetpathdemo.up.railway.app/api/providers');
             if (response.ok) {
               const providers = await response.json();
-              if (providers.length >= 29 && providers.some(p => p.postal_code === '95131')) process.exit(0);
+              if (providers.length >= 29 && providers.some(p => p.postal_code === '95131' && p.species.includes('Exotics')) && providers.some(p => p.name === 'ARCHVET — Winchester')) process.exit(0);
             }
             await new Promise(resolve => setTimeout(resolve, 5000));
           }
@@ -35,6 +35,7 @@ jobs:
           BASE_URL: https://vetpathdemo.up.railway.app
         run: |
           CHROMIUM_PATH="$(node -e "console.log(require('playwright').chromium.executablePath())")" npx playwright test tests/e2e/locations.spec.ts --grep 'unfiltered directory'
+          CHROMIUM_PATH="$(node -e "console.log(require('playwright').chromium.executablePath())")" npx playwright test tests/e2e/species-directory.spec.ts
       - uses: actions/upload-artifact@v4
         if: always()
         with:
