@@ -1,0 +1,34 @@
+name: Publish verified demo recording
+on:
+  push:
+    branches: [feat/vetpath-demo]
+    paths: ['.github/workflows/publish-video.yml']
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: arielhoff14/VetPath-demo
+          run-id: 43674449931
+          name: vetpath-public-demo-video
+          path: recording
+      - name: Publish the verified public-demo video
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cat > notes.md <<'NOTES'
+          Live app: https://vetpath-web-production.up.railway.app
+
+          This recording shows the actual public Next.js/PostgreSQL deployment, using separate owner, clinic, and administrator browser sessions. All patient data is fictional.
+
+          Verified: owner intake persistence; clinic review and confirmed arrival; staff-only clinical notes; owner-visible messages; live capacity updates; Google Sheet synchronization without duplicate hospitals; and event-derived insights.
+
+          Recorded and asserted by https://github.com/arielhoff14/VetPath-demo/actions/runs/43674449931 with normal browser TLS verification. The MP4 contains four chapters and on-screen captions. It is a silent recording.
+          NOTES
+          gh release create demo-verification-v0.1 recording/vetpath-demo.mp4 recording/manifest.json --repo arielhoff14/VetPath-demo --target c77af88703c96a4f3d4c231208e936ea7703500e --title 'VetPath public demo — verified recording' --notes-file notes.md --prerelease
