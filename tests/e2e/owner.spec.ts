@@ -5,7 +5,7 @@ test("owner discovery, comparison, intake and privacy", async ({
 }) => {
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { name: "The right care. A little closer." }),
+    page.getByRole("heading", { name: "Find Your Way When Your Pet Needs You Most." }),
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "SAGE Veterinary Centers", exact: true }),

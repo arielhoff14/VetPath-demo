@@ -169,9 +169,9 @@ export default function Owner({ providers }: { providers: Provider[] }) {
             <span className="tiny-dot" /> HERE FOR YOU. HERE FOR THEM.
           </div>
           <h1>
-            The right care.
+            Find Your Way
             <br />
-            <span>A little closer.</span>
+            <span>When Your Pet Needs You Most.</span>
           </h1>
           <p>
             When your pet needs help, finding it should feel simpler.
