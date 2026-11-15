@@ -1,0 +1,45 @@
+name: Verify and record public demo
+on:
+  push:
+    branches: [feat/vetpath-demo]
+    paths:
+      - "scripts/record-demo.mjs"
+      - "scripts/render-demo.mjs"
+      - ".github/workflows/record-demo.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      BASE_URL: https://vetpath-web-production.up.railway.app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium ffmpeg
+      - name: Verify public database readiness
+        run: curl --fail --show-error "$BASE_URL/api/health"
+      - name: Record real owner, clinic, and administrator workflows
+        run: CHROMIUM_PATH="$(node -e "console.log(require('playwright').chromium.executablePath())")" node scripts/record-demo.mjs
+      - name: Render MP4 with chapters
+        run: |
+          if ! command -v ffmpeg; then
+            sudo apt-get update
+            sudo apt-get install -y ffmpeg
+          fi
+          node scripts/render-demo.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: vetpath-public-demo-video
+          path: |
+            artifacts/video/vetpath-demo.mp4
+            artifacts/video/manifest.json
+            artifacts/video/*.webm
+          retention-days: 30

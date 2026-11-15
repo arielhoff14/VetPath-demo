@@ -32,13 +32,19 @@ Do not commit `.env` files. Rotate the signing secret when transitioning away fr
 
 ## Current deployment status
 
-Tested in the provided Cloud environment against actual PostgreSQL. The repository contains a Node/Next.js production build, Docker configuration, CI workflow, and local browser-test evidence. The Docker image built successfully, but container startup was blocked by this workspace’s disk limit; see TESTING.md. No persistent production host, domain, managed PostgreSQL account, or deployment credential was provided; no public service or managed database was created. The Sites managed preview relay failed, and its Worker/D1 runtime does not directly host this requested Node/PostgreSQL architecture. No static mock was published as a substitute.
+Public demo: **https://vetpath-web-production.up.railway.app**
+
+Deployed to Railway from the `feat/vetpath-demo` branch in `arielhoff14/VetPath-demo`. The web service runs the supplied Dockerfile, connects to PostgreSQL through Railway's private network, and uses secure HTTPS session cookies. `/api/health` confirms database connectivity. The database has a persistent Railway volume and no public TCP proxy was created.
+
+The Railway project is “VetPath Demo”; services are `vetpath-web` and `Postgres`. Application-source changes deploy automatically from the feature branch. Documentation and recording-only changes are excluded from deploy triggers. The initial deployment built and started successfully on Railway; the earlier local Docker disk limitation did not affect the hosted deployment.
+
+This is an openly accessible demo with simulated role switching. Enter fictional information only. Hosting resources use the connected Railway account and its applicable plan/usage limits.
 
 ## Remaining dependencies before a real pilot
 
 - Production identity (OIDC or equivalent), clinic membership verification, owner account/recovery flow, session revocation, rate limits, and a deployment access gate. Demo roles are intentional simulations.
 - Real clinic agreements and approval of published clinical/cost information. Partnerships, capacity and team schedules are simulated.
-- Managed hosting, PostgreSQL backups, monitoring, HTTPS, and reviewed schema migration strategy. Setup is idempotent bootstrap, not a versioned migration framework.
+- PostgreSQL backups, operational monitoring, and reviewed schema migration strategy. Hosting and HTTPS are now provisioned. Setup is idempotent bootstrap, not a versioned migration framework.
 - Provider-approved intake/record-sharing policies, retention and consent workflow, security review, audit identity, and clinical review of urgency messaging. Do not store real patient records in this demo.
 - SMS/email/telephony and real call completion integrations. Current messaging is in-app only, and click counts are not completed calls.
 - Continuous server-side spreadsheet synchronization if it must run with no administrator browser open. Current polling is visible and opt-in; failed imports leave the last valid data intact.

@@ -2,6 +2,10 @@
 
 A veterinary care marketplace demo built from scratch with **Next.js 16, TypeScript, React 19, and PostgreSQL 17**. Owner discovery, clinic operations, directory management, and insights share one database and backend.
 
+**Public demo:** https://vetpath-web-production.up.railway.app
+
+The deployed app uses Next.js and a private PostgreSQL service on Railway. Use fictional data; clinic roles, partnerships, and intake availability are simulated.
+
 ![Owner discovery](docs/screenshots/owner-desktop.png)
 
 ## Run locally
@@ -81,4 +85,4 @@ Use a **disposable PostgreSQL database** for browser tests: tests create fiction
 
 ## Deployment
 
-See [deployment instructions](docs/DEPLOYMENT.md) for Docker and Node hosting, environment variables, health checks, and remaining dependencies. No production hosting or managed database has been provisioned. This demo is ready to run with the supplied code; production use requires real identity, operational agreements, and live integrations.
+See [deployment instructions](docs/DEPLOYMENT.md) for Docker and Node hosting, environment variables, health checks, and remaining dependencies. The public demo and PostgreSQL database are deployed on Railway. Real clinical use still requires identity verification, operational agreements, and live integrations.

@@ -38,4 +38,10 @@ Screenshots are in `docs/screenshots/` for owner desktop, owner mobile, clinic, 
 - Optional external AI extraction has no live API key and was not exercised against the AI service; the default rule-based assistant was tested.
 - Link targets were verified, but no real clinic was called, no SMS/email was sent, and no actual veterinary visit occurred.
 - Maps are working outbound Google Maps links; approximate distance calculations are not live route estimates.
-- No persistent production hosting was provisioned. Demo authentication is scoped and tested, but intentionally provides simulated staff access rather than real organizational identity.
+- A public Railway deployment with persistent PostgreSQL is now provisioned. Demo authentication is scoped and tested, but intentionally provides simulated staff access rather than real organizational identity.
+
+## Public deployment verification
+
+The live Railway health endpoint returned HTTP 200 and confirmed PostgreSQL connectivity. The six local production workflow scenarios passed again before deployment. `.github/workflows/record-demo.yml` records the actual public application from a clean GitHub Actions Chromium browser, with normal TLS validation and independent owner/clinic sessions. Its manifest records the assertions and source URL.
+
+Local Cloud Chromium did not trust the environment proxy certificate. A persistent trust-store change was rejected by automatic approval review; no certificate checks were disabled. The public-browser recording runs on GitHub Actions to avoid that environment-specific issue.
