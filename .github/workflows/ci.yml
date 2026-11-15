@@ -1,0 +1,53 @@
+name: VetPath checks
+on:
+  push:
+    branches: [main, feat/vetpath-demo]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: vetpath
+          POSTGRES_PASSWORD: vetpath_test
+          POSTGRES_DB: vetpath_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U vetpath -d vetpath_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://vetpath:vetpath_test@localhost:5432/vetpath_test
+      SESSION_SECRET: ci-only-non-secret-session-signing-key-for-isolated-test-db
+      DEMO_MODE: "true"
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run db:setup
+      - run: npm run typecheck && npm test
+      - run: npm run build
+      - name: Production browser suite
+        run: |
+          npm start > /tmp/vetpath-server.log 2>&1 &
+          for attempt in $(seq 1 60); do
+            curl --fail --silent http://127.0.0.1:3000/api/health && break
+            sleep 1
+          done
+          CHROMIUM_PATH="$(node -e "console.log(require('playwright').chromium.executablePath())")" BASE_URL=http://127.0.0.1:3000 npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14

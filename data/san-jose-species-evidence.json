@@ -1,0 +1,34 @@
+[
+  {
+    "id": "public-archvet-winchester",
+    "name": "ARCHVET — Winchester",
+    "address": "824 N Winchester Boulevard, San Jose, CA 95128",
+    "phone": "6692305034",
+    "category": "Urgent care",
+    "species": ["Dog", "Cat", "Exotics"],
+    "species_subtypes": ["Rabbit", "Bird", "Reptile", "Small mammal"],
+    "services": ["Urgent care", "Emergency", "General practice", "Surgery", "Ultrasound", "Radiography"],
+    "hours": "Published hours: daily 8 AM–10 PM Pacific; not a 24-hour hospital. Call before travel.",
+    "scope": "Winchester offers walk-in urgent/emergency care during published hours. Public service descriptions include rabbits, birds, reptiles and small mammals. Exact species, on-duty expertise and current acceptance require a call. Do not infer the same exotic capability at the Santa Teresa branch.",
+    "source_url": "https://archvet.com/emergencies",
+    "source_notes": "Official Winchester branch and species pages checked November 15, 2026: https://archvet.com/locations and https://archvet.com/emergencies. Additional public-source listing, not part of the original spreadsheet. No live intake feed is connected.",
+    "species_evidence": "Official service page names rabbits, birds, reptiles, guinea pigs, hamsters, ferrets and other exotic pets. The branch comparison distinguishes Winchester exotic care from Santa Teresa general practice. Call Winchester to confirm current care for the exact animal.",
+    "checked": "2026-11-15"
+  },
+  {
+    "id": "public-alum-rock",
+    "name": "Alum Rock Animal Hospital",
+    "address": "2810 Alum Rock Avenue, San Jose, CA 95127",
+    "phone": "4082582735",
+    "category": "General practice",
+    "species": ["Dog", "Cat", "Exotics"],
+    "species_subtypes": ["Bird", "Small mammal"],
+    "services": ["General practice", "Urgent care", "Surgery", "Ultrasound", "Radiography"],
+    "hours": "Published: open seven days a week. Call for today's hours and urgent-case acceptance.",
+    "scope": "Official homepage advertises wellness, surgery, dentistry and urgent visits for dogs, cats, birds, pocket pets and exotics. No exhaustive exotic-species list or real-time urgent intake was confirmed.",
+    "source_url": "https://alumrockanimalhospital.com/",
+    "source_notes": "Official hospital homepage checked November 15, 2026. Additional public-source listing, not part of the original spreadsheet. Published urgent visits are not confirmed current intake.",
+    "species_evidence": "Official homepage explicitly names dogs, cats, birds, pocket pets and exotics. Bird and small-mammal care is listed; other exotic subtypes and on-duty capability require confirmation by phone.",
+    "checked": "2026-11-15"
+  }
+]
