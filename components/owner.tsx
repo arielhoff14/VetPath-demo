@@ -787,7 +787,7 @@ function ProviderCard({
           </button>
           <p className="provider-location">
             <MapPin size={13} />
-            {p.address?.split(",")[0] || p.city}
+            {p.address || `${p.city} · Street address unverified`}
             <span>·</span>
             {p.distance !== undefined
               ? `${p.distance.toFixed(1)} mi`

@@ -98,6 +98,7 @@ test("directory imports deduplicate branches and address edits update owner ZIP 
   await page.goto("/");
   await page.getByLabel("Search location").fill("95131");
   const card = page.locator(".provider-card").filter({ hasText: target.name });
+  await expect(card).toContainText("San Jose, CA 95131");
   await expect(card).toBeVisible();
   const edit = await admin.request.patch(`/api/providers/${target.id}`, {
     data: {
