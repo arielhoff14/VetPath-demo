@@ -9,6 +9,7 @@ jobs:
     timeout-minutes: 15
     env:
       BASE_URL: https://vetpath-web-production.up.railway.app
+      SKIP_DEMO_RESET: "true"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -37,6 +38,7 @@ jobs:
             artifacts/video/vetpath-demo.mp4
             artifacts/video/manifest.json
             artifacts/video/*.webm
+            artifacts/video/*.png
           retention-days: 30
 
       - name: Publish walkthrough and verification manifest
@@ -50,4 +52,4 @@ jobs:
 
           Fictional cases and clinics only. Silent video with captions. The AI service is unconfigured; the disclosed structured fallback is demonstrated. Local/CI PostgreSQL integration tests additionally query database rows directly.
           NOTES
-          gh release create connected-demo-${{ github.run_id }} artifacts/video/vetpath-demo.mp4 artifacts/video/manifest.json --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title 'VetPath connected workflow — verified walkthrough' --notes-file /tmp/video-notes.md --prerelease
+          gh release create connected-demo-${{ github.run_id }} artifacts/video/vetpath-demo.mp4 artifacts/video/manifest.json artifacts/video/*.png --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title 'VetPath connected workflow — verified walkthrough' --notes-file /tmp/video-notes.md --prerelease

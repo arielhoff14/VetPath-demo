@@ -13,7 +13,7 @@ const browser = await chromium.launch({
   args: ["--no-sandbox"],
 });
 const pet =
-  "Clover-" +
+  "Maple-" +
   new Date()
     .toISOString()
     .replace(/[^0-9]/g, "")
@@ -86,16 +86,13 @@ async function get(context, url) {
 try {
   const admin = await browser.newContext({ baseURL });
   await admin.request.post("/api/session", { data: { role: "admin" } });
-  expect(
-    (
-      await admin.request.post("/api/demo/reset", {
-        data: {
-          confirmation: "RESET FICTIONAL CLINICS",
-          requestKey: randomUUID(),
-        },
-      })
-    ).ok(),
-  ).toBe(true);
+  if (process.env.SKIP_DEMO_RESET !== "true") {
+    expect((await admin.request.post("/api/demo/reset",{data:{confirmation:"RESET FICTIONAL CLINICS",requestKey:randomUUID()}})).ok()).toBe(true);
+  } else {
+    const existing=await get(admin,"/api/activity/demo-harbor");
+    expect(existing.capacity).toBe(8);expect(existing.workload).toBe(4);expect(existing.accepting).toBe(true);
+    expect((await admin.request.patch("/api/activity/demo-harbor",{data:{version:existing.version,confirm:true}})).ok()).toBe(true);
+  }
   const baseline = await get(admin, "/api/activity/demo-harbor");
   expect(baseline.percent).toBe(50);
   const before = await get(admin, "/api/insights");
@@ -117,12 +114,12 @@ try {
   await op
     .getByLabel("Tell us about your pet")
     .pressSequentially(
-      "My dog has been limping after a walk for two hours near 94103. Can you find urgent care?",
+      "My cat Maple has been limping with a sore front paw for three hours in 94103. Please help me find urgent care.",
       { delay: 35 },
     );
   await op.getByRole("button", { name: "Send message", exact: true }).click();
   await expect(op.getByLabel("Pet species", { exact: true })).toHaveValue(
-    "Dog",
+    "Cat",
   );
   await caption(
     op,
@@ -144,6 +141,7 @@ try {
   await op.getByLabel("Your name").fill("Fictional Casey");
   await op.getByLabel("Pet’s name").fill(pet);
   await op.getByLabel("Demo email or phone").fill("casey@example.test");
+  await op.screenshot({path:out+"/owner-inquiry.png"});
   await op.waitForTimeout(2000);
   await op
     .getByRole("button", { name: "Send inquiry to clinic", exact: true })
@@ -171,9 +169,11 @@ try {
     "The inquiry reaches Harbor’s incoming queue. Activity remains 50%: inquiries are not arrived patients.",
   );
   await cp.getByRole("row").filter({ hasText: pet }).scrollIntoViewIfNeeded();
+  await cp.screenshot({path:out+"/clinic-queue.png",fullPage:true});
   await cp.waitForTimeout(1800);
   await openPatient(cp);
   await expect(cp.getByRole("dialog")).toContainText("limping");
+  await cp.screenshot({path:out+"/clinic-patient.png"});
   await cp
     .getByRole("button", { name: "Acknowledge inquiry", exact: true })
     .click();
@@ -248,7 +248,7 @@ try {
   await caption(
     cp,
     "Completion decreases activity",
-    "Clover’s workload is removed on completion. Baseline activity returns to 4 ÷ 8 = 50%.",
+    "Maple’s workload is removed on completion. Baseline activity returns to 4 ÷ 8 = 50%.",
   );
   await cp.waitForTimeout(2500);
   await expect(op.getByRole("dialog")).toContainText("Visit complete");
@@ -265,6 +265,7 @@ try {
     "Owner refreshed",
     "The same unique case remains complete after refresh. No status was faked or changed only in the page.",
   );
+  await op.screenshot({path:out+"/owner-complete.png"});
   await op.waitForTimeout(2500);
   await switchTo(
     staff,
