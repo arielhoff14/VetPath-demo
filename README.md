@@ -4,6 +4,8 @@ A veterinary care marketplace demo built from scratch with **Next.js 16, TypeScr
 
 **Public demo:** https://vetpath-web-production.up.railway.app
 
+**55-second verification video:** [Watch or download the recording](https://github.com/arielhoff14/VetPath-demo/releases/tag/demo-verification-v0.1). It shows the actual public deployment with independent owner and clinic sessions.
+
 The deployed app uses Next.js and a private PostgreSQL service on Railway. Use fictional data; clinic roles, partnerships, and intake availability are simulated.
 
 ![Owner discovery](docs/screenshots/owner-desktop.png)
